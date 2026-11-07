@@ -1,0 +1,100 @@
+/*
+ * FreeModbus Libary: BSD Socket Library Port
+ * Copyright (C) 2006 Christian Walter <wolti@sil.at>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * File: $Id$
+ */
+
+ /**********************************************************
+ *	Linux TCP support.
+ *	Based on Walter's project. 
+ *	Modified by Steven Guo <gotop167@163.com>
+ ***********************************************************/
+
+#ifndef _PORT_H
+#define _PORT_H
+
+
+#include <assert.h>
+#include <stdint.h>
+#define	INLINE
+#define PR_BEGIN_EXTERN_C			extern "C" {
+#define	PR_END_EXTERN_C				}
+
+#ifdef __cplusplus
+PR_BEGIN_EXTERN_C
+#endif
+/* ----------------------- Defines ------------------------------------------*/
+#define ENTER_CRITICAL_SECTION( )
+#define EXIT_CRITICAL_SECTION( )
+#define MB_PORT_HAS_CLOSE	1
+#ifndef TRUE
+#define TRUE            1
+#endif
+#ifndef FALSE
+#define FALSE           0
+#endif
+/* ----------------------- Type definitions ---------------------------------*/
+typedef int     SOCKET;
+
+#define SOCKET_ERROR (-1)
+#define INVALID_SOCKET (~0)
+typedef char    BOOL;
+typedef unsigned char UCHAR;
+typedef unsigned char BYTE;
+typedef char    CHAR;
+typedef unsigned short USHORT;
+typedef short   SHORT;
+
+typedef unsigned long ULONG;
+typedef long    LONG;
+typedef enum
+{
+    MB_LOG_DEBUG,
+    MB_LOG_INFO,
+    MB_LOG_WARN,
+    MB_LOG_ERROR
+} eMBPortLogLevel;
+
+#define MODBUS_TCP_PORT_DEFAULT (502)
+#define MB_TCP_BUF_SIZE (256 + 7) /* Must hold a complete Modbus TCP frame. */
+/* ----------------------- MBAP Header --------------------------------------*/
+#define MB_TCP_UID          6
+#define MB_TCP_LEN          4
+#define MB_TCP_FUNC         7
+
+typedef struct ModbusTCPFrame{
+    uint8_t TDI[2];
+    uint8_t PID[2];
+    uint8_t LEN[2];
+    uint8_t UID;
+    uint8_t FUNC;
+    uint8_t *DATA;
+}ModbusTCPFrame_t;
+
+
+typedef int (*mb_tcp_send)(SOCKET sock,const BYTE *buff,ULONG length);
+typedef int (*mb_tcp_recv)(SOCKET sock,const BYTE *buff,ULONG length);
+
+/* ----------------------- Function prototypes ------------------------------*/
+
+
+
+#ifdef __cplusplus
+PR_END_EXTERN_C
+#endif
+#endif

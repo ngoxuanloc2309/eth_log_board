@@ -1,0 +1,12 @@
+{
+    "devices" : [
+    {"id" : 1, "type" : "sx-io","connection" : "zigbee"},
+    {"id" : 2, "type" : "sx-io","connection" : "zigbee"},
+    {"id" : 3, "type" : "sx-io","connection" : "zigbee"},
+    {"id" : 4, "type" : "sx-io","connection" : "zigbee"},
+    {"id" : 5, "type" : "sx-420mA","connection" : "zigbee"},
+    {"id" : 6, "type" : "sx-420mA","connection" : "zigbee"},
+    {"id" : 7, "type" : "sx-420mA","connection" : "zigbee"},
+    {"id" : 8, "type" : "sx-420mA","connection" : "zigbee"}
+    ]
+}
