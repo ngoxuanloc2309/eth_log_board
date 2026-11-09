@@ -40,39 +40,40 @@
   */
 
 #define HAL_MODULE_ENABLED
-#define HAL_ADC_MODULE_ENABLED
+/*#define HAL_CCB_MODULE_ENABLED */
+/*#define HAL_ADC_MODULE_ENABLED */
 /*#define HAL_CEC_MODULE_ENABLED */
 /*#define HAL_COMP_MODULE_ENABLED */
 /*#define HAL_CORDIC_MODULE_ENABLED */
-#define HAL_CRC_MODULE_ENABLED
+/*#define HAL_CRC_MODULE_ENABLED */
 /*#define HAL_CRYP_MODULE_ENABLED */
 /*#define HAL_DAC_MODULE_ENABLED */
 /*#define HAL_DCACHE_MODULE_ENABLED */
 /*#define HAL_DCMI_MODULE_ENABLED */
-#define HAL_DTS_MODULE_ENABLED
+/*#define HAL_DTS_MODULE_ENABLED */
 #define HAL_ETH_MODULE_ENABLED
-#define HAL_FDCAN_MODULE_ENABLED
-#define HAL_FMAC_MODULE_ENABLED
+/*#define HAL_FDCAN_MODULE_ENABLED */
+/*#define HAL_FMAC_MODULE_ENABLED */
 /*#define HAL_GTZC_MODULE_ENABLED */
 #define HAL_HASH_MODULE_ENABLED
 /*#define HAL_HCD_MODULE_ENABLED */
 /*#define HAL_IRDA_MODULE_ENABLED */
-#define HAL_IWDG_MODULE_ENABLED
+/*#define HAL_IWDG_MODULE_ENABLED */
 /*#define HAL_I2C_MODULE_ENABLED */
 /*#define HAL_I3C_MODULE_ENABLED */
 /*#define HAL_I2S_MODULE_ENABLED */
-/*#define HAL_LPTIM_MODULE_ENABLED */
+#define HAL_LPTIM_MODULE_ENABLED
 /*#define HAL_NAND_MODULE_ENABLED */
 /*#define HAL_NOR_MODULE_ENABLED */
 /*#define HAL_OPAMP_MODULE_ENABLED */
-#define HAL_XSPI_MODULE_ENABLED
+/*#define HAL_XSPI_MODULE_ENABLED */
 /*#define HAL_OTFDEC_MODULE_ENABLED */
 #define HAL_PKA_MODULE_ENABLED
 #define HAL_RNG_MODULE_ENABLED
 #define HAL_RTC_MODULE_ENABLED
 /*#define HAL_SAI_MODULE_ENABLED */
 /*#define HAL_SD_MODULE_ENABLED */
-#define HAL_SDIO_MODULE_ENABLED
+/*#define HAL_SDIO_MODULE_ENABLED */
 /*#define HAL_SDRAM_MODULE_ENABLED */
 /*#define HAL_MMC_MODULE_ENABLED */
 /*#define HAL_SMARTCARD_MODULE_ENABLED */
@@ -208,6 +209,7 @@
   *        for each PPP peripheral).
   */
 #define  USE_HAL_ADC_REGISTER_CALLBACKS       0U    /* ADC register callback disabled       */
+#define  USE_HAL_CCB_REGISTER_CALLBACKS       0U    /* CCB register callback disabled       */
 #define  USE_HAL_CEC_REGISTER_CALLBACKS       0U    /* CEC register callback disabled       */
 #define  USE_HAL_COMP_REGISTER_CALLBACKS      0U    /* COMP register callback disabled      */
 #define  USE_HAL_CORDIC_REGISTER_CALLBACKS    0U    /* CORDIC register callback disabled    */
@@ -266,6 +268,10 @@
 
 #define USE_SDIO_TRANSCEIVER          0U
 #define SDIO_MAX_IO_NUMBER            7U
+
+/* ################## ETH peripheral configuration ######################### */
+#define ETH_TX_DESC_CNT 4U
+#define ETH_RX_DESC_CNT 4U
 
 /* Includes ----------------------------------------------------------------------------------------------------------*/
 
@@ -436,6 +442,10 @@
 #ifdef HAL_PCD_MODULE_ENABLED
  #include "stm32h5xx_hal_pcd.h"
 #endif /* HAL_PCD_MODULE_ENABLED */
+
+#ifdef HAL_CCB_MODULE_ENABLED
+#include "stm32h5xx_hal_ccb.h"
+#endif /* HAL_CCB_MODULE_ENABLED */
 
 #ifdef HAL_HCD_MODULE_ENABLED
  #include "stm32h5xx_hal_hcd.h"

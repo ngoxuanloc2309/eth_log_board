@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -54,14 +54,14 @@ extern "C" {
 /* USER CODE BEGIN EM */
 
 /* USER CODE END EM */
-extern osThreadId_t mainHandle;
+extern osThreadId_t mainTaskHandle;
 
 /* Exported function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
-void main_app(void *argument);
+void StartMainTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -69,6 +69,8 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 void vApplicationTickHook(void);
 void vApplicationIdleHook(void);
 void vApplicationStackOverflowHook(xTaskHandle xTask, char *pcTaskName);
+void configureTimerForRunTimeStats(void);
+unsigned long getRunTimeCounterValue(void);
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 

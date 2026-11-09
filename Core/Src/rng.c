@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -70,6 +70,10 @@ void HAL_RNG_MspInit(RNG_HandleTypeDef* rngHandle)
 
     /* RNG clock enable */
     __HAL_RCC_RNG_CLK_ENABLE();
+
+    /* RNG interrupt Init */
+    HAL_NVIC_SetPriority(RNG_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(RNG_IRQn);
   /* USER CODE BEGIN RNG_MspInit 1 */
 
   /* USER CODE END RNG_MspInit 1 */
@@ -86,6 +90,9 @@ void HAL_RNG_MspDeInit(RNG_HandleTypeDef* rngHandle)
   /* USER CODE END RNG_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_RNG_CLK_DISABLE();
+
+    /* RNG interrupt Deinit */
+    HAL_NVIC_DisableIRQ(RNG_IRQn);
   /* USER CODE BEGIN RNG_MspDeInit 1 */
 
   /* USER CODE END RNG_MspDeInit 1 */
@@ -95,3 +102,4 @@ void HAL_RNG_MspDeInit(RNG_HandleTypeDef* rngHandle)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+

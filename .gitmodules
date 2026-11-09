@@ -1,0 +1,21 @@
+[submodule "libs/http"]
+	path = libs/http
+	url = https://github.com/FreeRTOS/coreHTTP.git
+[submodule "libs/mqtt"]
+	path = libs/mqtt
+	url = https://github.com/FreeRTOS/coreMQTT-Agent.git
+[submodule "libs/json"]
+	path = libs/json
+	url = https://github.com/DaveGamble/cJSON.git
+[submodule "libs/lwip"]
+	path = libs/lwip
+	url = https://github.com/STMicroelectronics/stm32-mw-lwip.git
+[submodule "libs/tls"]
+	path = libs/tls
+	url = https://github.com/STMicroelectronics/stm32-mw-mbedtls.git
+[submodule "libs/logger"]
+	path = libs/logger
+	url = https://github.com/SynaptiXCompany/logger.git
+[submodule "libs/fs"]
+	path = libs/fs
+	url = https://github.com/littlefs-project/littlefs.git

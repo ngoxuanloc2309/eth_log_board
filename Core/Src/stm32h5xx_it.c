@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -22,7 +22,6 @@
 #include "stm32h5xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "tusb.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,22 +57,22 @@
 /* External variables --------------------------------------------------------*/
 extern ETH_HandleTypeDef heth;
 extern HASH_HandleTypeDef hhash;
-extern IWDG_HandleTypeDef hiwdg;
-extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
+extern LPTIM_HandleTypeDef hlptim1;
+extern LPTIM_HandleTypeDef hlptim2;
+extern LPTIM_HandleTypeDef hlptim3;
+extern UART_HandleTypeDef hlpuart1;
 extern UART_HandleTypeDef huart7;
 extern UART_HandleTypeDef huart9;
-extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart10;
+extern PKA_HandleTypeDef hpka;
+extern RNG_HandleTypeDef hrng;
+extern SPI_HandleTypeDef hspi1;
 extern PCD_HandleTypeDef hpcd_USB_DRD_FS;
 extern TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN EV */
-extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
+
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -175,104 +174,6 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles IWDG global interrupt.
-  */
-void IWDG_IRQHandler(void)
-{
-  /* USER CODE BEGIN IWDG_IRQn 0 */
-
-  /* USER CODE END IWDG_IRQn 0 */
-  HAL_IWDG_IRQHandler(&hiwdg);
-  /* USER CODE BEGIN IWDG_IRQn 1 */
-
-  /* USER CODE END IWDG_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 Break interrupt.
-  */
-void TIM1_BRK_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_BRK_IRQn 0 */
-
-  /* USER CODE END TIM1_BRK_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_BRK_IRQn 1 */
-
-  /* USER CODE END TIM1_BRK_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 Update interrupt.
-  */
-void TIM1_UP_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_UP_IRQn 0 */
-
-  /* USER CODE END TIM1_UP_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_UP_IRQn 1 */
-
-  /* USER CODE END TIM1_UP_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 Trigger and Commutation interrupts.
-  */
-void TIM1_TRG_COM_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_TRG_COM_IRQn 0 */
-
-  /* USER CODE END TIM1_TRG_COM_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_TRG_COM_IRQn 1 */
-
-  /* USER CODE END TIM1_TRG_COM_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM1 Capture Compare interrupt.
-  */
-void TIM1_CC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
-
-  /* USER CODE END TIM1_CC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
-
-  /* USER CODE END TIM1_CC_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM2 global interrupt.
-  */
-void TIM2_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM2_IRQn 0 */
-
-  /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim2);
-  /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  /* USER CODE END TIM2_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM3 global interrupt.
-  */
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-
-  /* USER CODE END TIM3_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim3);
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM6 global interrupt.
   */
 void TIM6_IRQHandler(void)
@@ -287,17 +188,17 @@ void TIM6_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles USART1 global interrupt.
+  * @brief This function handles SPI1 global interrupt.
   */
-void USART1_IRQHandler(void)
+void SPI1_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART1_IRQn 0 */
+  /* USER CODE BEGIN SPI1_IRQn 0 */
 
-  /* USER CODE END USART1_IRQn 0 */
-  HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
+  /* USER CODE END SPI1_IRQn 0 */
+  HAL_SPI_IRQHandler(&hspi1);
+  /* USER CODE BEGIN SPI1_IRQn 1 */
 
-  /* USER CODE END USART1_IRQn 1 */
+  /* USER CODE END SPI1_IRQn 1 */
 }
 
 /**
@@ -315,13 +216,54 @@ void USART3_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles LPUART1 global interrupt.
+  */
+void LPUART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN LPUART1_IRQn 0 */
+
+  /* USER CODE END LPUART1_IRQn 0 */
+  HAL_UART_IRQHandler(&hlpuart1);
+  /* USER CODE BEGIN LPUART1_IRQn 1 */
+
+  /* USER CODE END LPUART1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles LPTIM1 global interrupt.
+  */
+void LPTIM1_IRQHandler(void)
+{
+  /* USER CODE BEGIN LPTIM1_IRQn 0 */
+
+  /* USER CODE END LPTIM1_IRQn 0 */
+  HAL_LPTIM_IRQHandler(&hlptim1);
+  /* USER CODE BEGIN LPTIM1_IRQn 1 */
+
+  /* USER CODE END LPTIM1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles LPTIM2 global interrupt.
+  */
+void LPTIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN LPTIM2_IRQn 0 */
+
+  /* USER CODE END LPTIM2_IRQn 0 */
+  HAL_LPTIM_IRQHandler(&hlptim2);
+  /* USER CODE BEGIN LPTIM2_IRQn 1 */
+
+  /* USER CODE END LPTIM2_IRQn 1 */
+}
+
+/**
   * @brief This function handles USB FS global interrupt.
   */
 void USB_DRD_FS_IRQHandler(void)
 {
   /* USER CODE BEGIN USB_DRD_FS_IRQn 0 */
-  tud_int_handler(0);
-  return;
+
   /* USER CODE END USB_DRD_FS_IRQn 0 */
   HAL_PCD_IRQHandler(&hpcd_USB_DRD_FS);
   /* USER CODE BEGIN USB_DRD_FS_IRQn 1 */
@@ -400,6 +342,20 @@ void ETH_WKUP_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles RNG global interrupt.
+  */
+void RNG_IRQHandler(void)
+{
+  /* USER CODE BEGIN RNG_IRQn 0 */
+
+  /* USER CODE END RNG_IRQn 0 */
+  HAL_RNG_IRQHandler(&hrng);
+  /* USER CODE BEGIN RNG_IRQn 1 */
+
+  /* USER CODE END RNG_IRQn 1 */
+}
+
+/**
   * @brief This function handles HASH global interrupt.
   */
 void HASH_IRQHandler(void)
@@ -413,5 +369,34 @@ void HASH_IRQHandler(void)
   /* USER CODE END HASH_IRQn 1 */
 }
 
+/**
+  * @brief This function handles PKA global interrupt.
+  */
+void PKA_IRQHandler(void)
+{
+  /* USER CODE BEGIN PKA_IRQn 0 */
+
+  /* USER CODE END PKA_IRQn 0 */
+  HAL_PKA_IRQHandler(&hpka);
+  /* USER CODE BEGIN PKA_IRQn 1 */
+
+  /* USER CODE END PKA_IRQn 1 */
+}
+
+/**
+  * @brief This function handles LPTIM3 global interrupt.
+  */
+void LPTIM3_IRQHandler(void)
+{
+  /* USER CODE BEGIN LPTIM3_IRQn 0 */
+
+  /* USER CODE END LPTIM3_IRQn 0 */
+  HAL_LPTIM_IRQHandler(&hlptim3);
+  /* USER CODE BEGIN LPTIM3_IRQn 1 */
+
+  /* USER CODE END LPTIM3_IRQn 1 */
+}
+
 /* USER CODE BEGIN 1 */
+
 /* USER CODE END 1 */

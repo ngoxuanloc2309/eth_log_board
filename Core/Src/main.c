@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -18,28 +18,23 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os2.h"
-#include "adc.h"
-#include "crc.h"
-#include "dts.h"
-#include "fdcan.h"
-#include "fmac.h"
+#include "app_freertos.h"
 #include "hash.h"
 #include "icache.h"
-#include "iwdg.h"
-#include "octospi.h"
+#include "lptim.h"
 #include "pka.h"
 #include "rng.h"
 #include "rtc.h"
-#include "sdmmc.h"
 #include "spi.h"
-#include "tim.h"
-#include "usart.h"
 #include "usb.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "logger.h"
+#include <string.h>
+#include "sx_spi.h"
+#include "sx_uart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,7 +44,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -65,15 +59,30 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void PeriphCommonClock_Config(void);
-void MX_FREERTOS_Init(void);
+static void MPU_Config(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+sx_uart_config_t debug_uart_config = {
+  .mode = SX_UART_MODE_INTERRUPT,
+  .rx_buffer_size = 512,
+  .Baudrate = 115200,
+  .WordLength = SX_UART_DATA_8_BITS,
+  .StopBits = UART_STOPBITS_1,
+  .Parity = UART_PARITY_NONE
+};
 
+sx_uart_config_t zigbee_uart_config = {
+  .mode = SX_UART_MODE_INTERRUPT,
+  .rx_buffer_size = 512,
+  .Baudrate = 115200,
+  .WordLength = SX_UART_DATA_8_BITS,
+  .StopBits = UART_STOPBITS_1,
+  .Parity = UART_PARITY_NONE
+};
 /* USER CODE END 0 */
 
 /**
@@ -89,6 +98,9 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
+  /* MPU Configuration--------------------------------------------------------*/
+  MPU_Config();
+
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
@@ -99,9 +111,6 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
-  /* Configure the peripherals common clocks */
-  PeriphCommonClock_Config();
-
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -109,31 +118,25 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ICACHE_Init();
-  MX_USART1_UART_Init();
-  MX_USART3_UART_Init();
-  MX_USB_PCD_Init();
-  MX_ADC1_Init();
-  MX_RNG_Init();
-  MX_IWDG_Init();
-  MX_CRC_Init();
-  MX_FMAC_Init();
-  MX_HASH_Init();
-  MX_PKA_Init();
-  MX_DTS_Init();
-  MX_RTC_Init();
-  MX_FDCAN1_Init();
-  MX_FDCAN2_Init();
-  MX_OCTOSPI1_Init();
-  // MX_SDMMC1_SDIO_Init();
   MX_SPI1_Init();
-  MX_UART7_Init();
-  MX_UART9_Init();
-  MX_USART10_UART_Init();
-  // MX_TIM1_Init();
-  // MX_TIM2_Init();
-  // MX_TIM3_Init();
+  if (false == sx_spi_init()) {
+    Error_Handler();
+  }
+  MX_USB_PCD_Init();
+  MX_LPTIM1_Init();
+  MX_LPTIM2_Init();
+  MX_LPTIM3_Init();
+  MX_HASH_Init();
+  MX_RNG_Init();
+  MX_PKA_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-  
+  if(false == sx_uart_install(SX_UART_PORT_LPUART1,&debug_uart_config)){
+    Error_Handler();
+  }
+  if(false == sx_uart_install(SX_UART_PORT_UART9, &zigbee_uart_config)){
+    Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -216,27 +219,43 @@ void SystemClock_Config(void)
   __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_2);
 }
 
-/**
-  * @brief Peripherals Common Clock Configuration
-  * @retval None
-  */
-void PeriphCommonClock_Config(void)
-{
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
-
-  /** Initializes the peripherals clock
-  */
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CKPER;
-  PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSI;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
 /* USER CODE BEGIN 4 */
-extern uint32_t idleTimeCounter;
+
 /* USER CODE END 4 */
+
+ /* MPU Configuration */
+
+void MPU_Config(void)
+{
+  MPU_Region_InitTypeDef MPU_InitStruct = {0};
+  MPU_Attributes_InitTypeDef MPU_AttributesInit = {0};
+
+  /* Disables the MPU */
+  HAL_MPU_Disable();
+
+  /** Initializes and configures the Region 0 and the memory to be protected
+  */
+  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+  MPU_InitStruct.BaseAddress = 0x08FFF000;
+  MPU_InitStruct.LimitAddress = 0x08FFFFFF;
+  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;
+  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RO;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Attribute 0 and the memory to be protected
+  */
+  MPU_AttributesInit.Number = MPU_ATTRIBUTES_NUMBER0;
+  MPU_AttributesInit.Attributes = INNER_OUTER(MPU_NOT_CACHEABLE);
+
+  HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
+  /* Enables the MPU */
+  HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+
+}
 
 /**
   * @brief  Period elapsed callback in non blocking mode
@@ -256,15 +275,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  if (htim->Instance == TIM2)
-  {
-    idleTimeCounter++;
-  }
+
   /* USER CODE END Callback 1 */
 }
 
 /**
   * @brief  This function is executed in case of error occurrence.
+  * @param None
   * @retval None
   */
 void Error_Handler(void)

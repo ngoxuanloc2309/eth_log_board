@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -32,11 +32,11 @@ extern "C" {
 
 /* USER CODE END Includes */
 
+extern UART_HandleTypeDef hlpuart1;
+
 extern UART_HandleTypeDef huart7;
 
 extern UART_HandleTypeDef huart9;
-
-extern UART_HandleTypeDef huart1;
 
 extern UART_HandleTypeDef huart3;
 
@@ -46,9 +46,9 @@ extern UART_HandleTypeDef huart10;
 
 /* USER CODE END Private defines */
 
+void MX_LPUART1_UART_Init(void);
 void MX_UART7_Init(void);
 void MX_UART9_Init(void);
-void MX_USART1_UART_Init(void);
 void MX_USART3_UART_Init(void);
 void MX_USART10_UART_Init(void);
 

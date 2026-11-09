@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -38,7 +38,6 @@
      PH0-OSC_IN(PH0)   ------> RCC_OSC_IN
      PH1-OSC_OUT(PH1)   ------> RCC_OSC_OUT
      PA13(JTMS/SWDIO)   ------> DEBUG_JTMS-SWDIO
-     PA14(JTCK/SWCLK)   ------> DEBUG_JTCK-SWCLK
 */
 void MX_GPIO_Init(void)
 {
@@ -57,16 +56,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(USART10_DE_GPIO_Port, USART10_DE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ETH_RESET_GPIO_Port, ETH_RESET_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(ETH_RST_GPIO_Port, ETH_RST_Pin, GPIO_PIN_SET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(UART7_DE_GPIO_Port, UART7_DE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, USART3_DE_Pin|SPI1_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, USART3_DE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, LED2_Pin|LED1_Pin|LED0_Pin, GPIO_PIN_RESET);
@@ -77,20 +71,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(USART10_DE_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : ETH_RESET_Pin */
-  GPIO_InitStruct.Pin = ETH_RESET_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  HAL_GPIO_Init(ETH_RESET_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : ETH_RST_Pin */
-  GPIO_InitStruct.Pin = ETH_RST_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(ETH_RST_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : UART7_DE_Pin */
   GPIO_InitStruct.Pin = UART7_DE_Pin;
@@ -112,6 +92,14 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF0_TRACE;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BUTTON_Pin */
   GPIO_InitStruct.Pin = BUTTON_Pin;

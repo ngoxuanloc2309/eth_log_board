@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -59,10 +59,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define USART10_DE_Pin GPIO_PIN_4
 #define USART10_DE_GPIO_Port GPIOE
-#define ETH_RESET_Pin GPIO_PIN_0
-#define ETH_RESET_GPIO_Port GPIOC
-#define ETH_RST_Pin GPIO_PIN_0
-#define ETH_RST_GPIO_Port GPIOA
 #define UART7_DE_Pin GPIO_PIN_2
 #define UART7_DE_GPIO_Port GPIOB
 #define USART3_DE_Pin GPIO_PIN_10

@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#eff8f7">
+  <title>SynaptiX Device Console</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="icon" type="image/png" href="/X-favicon.png">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="SynaptiX device console home">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="/X-favicon.png" alt="">
+        </span>
+        <span class="brand-copy">
+          <strong>SynaptiX</strong>
+          <span>DEVICE CONSOLE</span>
+        </span>
+      </a>
+      <div class="topbar-actions">
+        <span class="connection-state" id="connection-state" data-state="loading">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="connection-label">Connecting</span>
+        </span>
+        <button class="icon-button" id="refresh-button" type="button"
+                aria-label="Refresh device status" title="Refresh status">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 7v5h-5M4 17v-5h5"></path>
+            <path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="page-heading" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">OVERVIEW <span class="eyebrow-line"></span></p>
+          <h1 id="page-title">Device monitor</h1>
+          <p class="page-subtitle" id="page-subtitle">
+            Live health and radio configuration for your device.
+          </p>
+        </div>
+        <div class="updated-label">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span>Updated <time id="last-updated">--</time></span>
+        </div>
+      </section>
+
+      <div class="notice" id="global-notice" role="status" hidden></div>
+
+      <nav class="view-nav" aria-label="Device console views">
+        <a class="view-nav-link" href="#monitor" data-view-link="monitor"
+           aria-current="page">Monitor</a>
+        <a class="view-nav-link" href="#settings" data-view-link="settings">Settings</a>
+        <a class="view-nav-link" href="#filesystem" data-view-link="filesystem">
+          File system
+        </a>
+      </nav>
+
+      <section id="monitor-view" aria-label="Device monitor">
+      <section class="status-grid" aria-label="Device health">
+        <article class="card status-card">
+          <div class="card-heading">
+            <span class="card-icon network-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 8.5 12 4l7 4.5v7L12 20l-7-4.5z"></path><path d="m5.5 8.7 6.5 4 6.5-4M12 13v6.5M8.5 6.3l7 4.3"></path></svg>
+            </span>
+            <span class="card-label">ETHERNET</span>
+            <span class="pill pill-neutral" id="network-pill">Checking</span>
+          </div>
+          <div class="status-primary" id="network-address">--</div>
+          <div class="status-caption">IPv4 address</div>
+          <div class="divider"></div>
+          <dl class="detail-list">
+            <div><dt>Link</dt><dd id="network-link">--</dd></div>
+            <div><dt>Interface</dt><dd id="network-interface">--</dd></div>
+            <div><dt>DHCP</dt><dd id="network-dhcp">--</dd></div>
+            <div><dt>Netmask</dt><dd id="network-netmask">--</dd></div>
+            <div><dt>Gateway</dt><dd id="network-gateway">--</dd></div>
+          </dl>
+        </article>
+
+        <article class="card status-card">
+          <div class="card-heading">
+            <span class="card-icon radio-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 17v3M8 20h8M5.6 14.4a9 9 0 0 1 0-12.8M18.4 1.6a9 9 0 0 1 0 12.8"></path><path d="M8.4 11.6a5 5 0 0 1 0-7.2M15.6 4.4a5 5 0 0 1 0 7.2M12 9.5a1 1 0 1 0 0 .1"></path></svg>
+            </span>
+            <span class="card-label">RADIO</span>
+            <span class="pill pill-neutral" id="radio-pill">Checking</span>
+          </div>
+          <div class="status-primary" id="radio-state">--</div>
+          <div class="status-caption">Zigbee module</div>
+          <div class="divider"></div>
+          <dl class="detail-list">
+            <div><dt>PAN ID</dt><dd id="radio-pan-id">--</dd></div>
+            <div><dt>Channel</dt><dd id="radio-channel">--</dd></div>
+            <div><dt>Address</dt><dd id="radio-address">--</dd></div>
+            <div><dt>Role</dt><dd id="radio-role">--</dd></div>
+            <div><dt>Last operation</dt><dd id="radio-operation">--</dd></div>
+          </dl>
+        </article>
+
+        <article class="card status-card storage-card">
+          <div class="card-heading">
+            <span class="card-icon storage-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"></rect><path d="M8 9h8M8 13h5M8 16h.01M16 16h.01"></path></svg>
+            </span>
+            <span class="card-label">STORAGE</span>
+            <span class="pill pill-neutral" id="storage-pill">Checking</span>
+          </div>
+          <div class="status-primary" id="storage-state">--</div>
+          <div class="status-caption">LittleFS volume</div>
+          <div class="divider"></div>
+          <p class="card-note" id="storage-description">
+            Storage status is reported by the firmware. This page never formats flash.
+          </p>
+        </article>
+
+        <article class="card status-card system-card">
+          <div class="card-heading">
+            <span class="card-icon system-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5 5h14v14H5zM9 9h6v6H9z"></path><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"></path></svg>
+            </span>
+            <span class="card-label">SYSTEM</span>
+            <span class="pill pill-neutral" id="system-pill">Checking</span>
+          </div>
+          <div class="status-primary" id="system-cpu">--</div>
+          <div class="status-caption">CPU utilization · 1 s sample</div>
+          <div class="divider"></div>
+          <dl class="detail-list">
+            <div><dt>RTOS heap used</dt><dd id="system-heap-used">--</dd></div>
+            <div><dt>Free heap</dt><dd id="system-heap-free">--</dd></div>
+            <div><dt>Lowest free heap</dt><dd id="system-heap-minimum">--</dd></div>
+            <div><dt>Tasks</dt><dd id="system-task-count">--</dd></div>
+          </dl>
+        </article>
+      </section>
+
+      <section class="card task-card" aria-labelledby="task-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">FREERTOS</p>
+            <h2 id="task-heading">Task monitor</h2>
+          </div>
+          <span class="pill pill-neutral" id="task-pill">Waiting for metrics</span>
+        </div>
+        <p class="section-description" id="task-description">
+          Task state, priority, remaining stack watermark, and sampled CPU share.
+        </p>
+        <div class="table-scroll">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th scope="col">Task</th>
+                <th scope="col">State</th>
+                <th scope="col">Priority</th>
+                <th scope="col">Stack high-water</th>
+                <th scope="col">CPU</th>
+              </tr>
+            </thead>
+            <tbody id="task-list">
+              <tr><td class="empty-row" colspan="5">Waiting for device metrics.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      </section>
+
+      <section id="filesystem-view" aria-label="File system monitor" hidden>
+        <article class="card filesystem-capacity-card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">LITTLEFS</p>
+              <h2>Storage capacity</h2>
+            </div>
+            <span class="pill pill-neutral" id="filesystem-state">Checking</span>
+          </div>
+          <p class="filesystem-total" id="filesystem-total">--</p>
+          <p class="section-description">Logical flash volume capacity</p>
+          <progress class="filesystem-progress" id="filesystem-progress"
+                    max="100" value="0" aria-label="Filesystem space used">
+            0%
+          </progress>
+          <dl class="detail-list filesystem-details">
+            <div><dt>Allocated</dt><dd id="filesystem-used">--</dd></div>
+            <div><dt>Unallocated blocks</dt><dd id="filesystem-free">--</dd></div>
+            <div><dt>Files in directory</dt><dd id="filesystem-file-count">--</dd></div>
+            <div><dt>Folders in directory</dt><dd id="filesystem-directory-count">--</dd></div>
+          </dl>
+        </article>
+
+        <section class="card filesystem-browser-card" aria-labelledby="filesystem-heading">
+          <div class="section-heading filesystem-heading">
+            <div>
+              <p class="eyebrow">BROWSE & DOWNLOAD</p>
+              <h2 id="filesystem-heading">Directory browser</h2>
+            </div>
+            <button class="button button-secondary" id="filesystem-refresh-button"
+                    type="button">Refresh</button>
+          </div>
+          <div class="filesystem-path">
+            <button class="button button-secondary" id="filesystem-back-button"
+                    type="button" disabled>Back</button>
+            <span>Current path</span>
+            <code id="filesystem-path">/</code>
+          </div>
+          <p class="section-description" id="filesystem-message" role="status">
+            Loading file system information.
+          </p>
+          <div class="table-scroll">
+            <table class="task-table filesystem-table">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Size</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody id="filesystem-list">
+                <tr><td class="empty-row" colspan="4">Loading directory.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="filesystem-pagination">
+            <button class="button button-secondary" id="filesystem-previous-button"
+                    type="button" disabled>Previous</button>
+            <span id="filesystem-page-label">Page --</span>
+            <button class="button button-secondary" id="filesystem-next-button"
+                    type="button" disabled>Next</button>
+          </div>
+          <p class="filesystem-disclaimer">
+            Files can be downloaded from this directory. The device console is
+            unauthenticated, so use it only on a trusted isolated LAN.
+          </p>
+        </section>
+      </section>
+
+      <section id="settings-view" aria-label="Device settings" hidden>
+      <div class="content-grid">
+        <article class="card config-card settings-card settings-card-radio">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">RADIO SETTINGS</p>
+              <h2>Configuration</h2>
+            </div>
+            <span class="pill pill-neutral" id="config-pill">Read only</span>
+          </div>
+          <p class="section-description">
+            Review or apply supported radio settings. The device validates every change.
+          </p>
+
+          <form id="config-form">
+            <fieldset id="config-fields" disabled>
+              <div class="form-grid">
+                <label class="field">
+                  <span>PAN ID <span class="field-hint">0x0001–0xFF00</span></span>
+                  <input id="pan-id-input" name="panId" type="text" inputmode="text"
+                         autocomplete="off" spellcheck="false" maxlength="6"
+                         placeholder="0x2B02" required>
+                </label>
+                <label class="field">
+                  <span>Channel <span class="field-hint">11–26</span></span>
+                  <input id="channel-input" name="channel" type="number"
+                         min="11" max="26" step="1" required>
+                </label>
+                <label class="field">
+                  <span>Device address <span class="field-hint">0x0001–0xFF00</span></span>
+                  <input id="address-input" name="userAddress" type="text"
+                         inputmode="text" autocomplete="off" spellcheck="false"
+                         maxlength="6" placeholder="0x6677" required>
+                </label>
+                <label class="field">
+                  <span>Device role</span>
+                  <select id="role-input" name="pointType" required>
+                    <option value="1">Coordinator</option>
+                    <option value="2">Router</option>
+                    <option value="3">End device</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Transfer mode</span>
+                  <select id="transfer-input" name="transferModel" required>
+                    <option value="1">Mode 1</option>
+                    <option value="2">Mode 2</option>
+                    <option value="3">Mode 3</option>
+                    <option value="4">Mode 4</option>
+                    <option value="5">Mode 5</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>UART baud rate</span>
+                  <select id="baud-input" name="baudRate" required>
+                    <option value="1">1,200</option>
+                    <option value="2">2,400</option>
+                    <option value="3">4,800</option>
+                    <option value="4">9,600</option>
+                    <option value="5">19,200</option>
+                    <option value="6">38,400</option>
+                    <option value="7">57,600</option>
+                    <option value="8">115,200</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Parity</span>
+                  <select id="parity-input" name="parity" required>
+                    <option value="1">None</option>
+                    <option value="2">Even</option>
+                    <option value="3">Odd</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Antenna</span>
+                  <select id="antenna-input" name="antennaSelect" required>
+                    <option value="0">Antenna 0</option>
+                    <option value="1">Antenna 1</option>
+                  </select>
+                </label>
+              </div>
+              <p class="form-footnote">
+                Security keys are not displayed or changed here. Data bits and stop bits
+                remain fixed at 8 and 1.
+              </p>
+              <div class="form-actions">
+                <button class="button button-secondary" id="read-config-button" type="button">
+                  Read from device
+                </button>
+                <button class="button button-primary" id="save-config-button" type="submit">
+                  <span>Apply settings</span>
+                  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M10 4l6 6-6 6"></path></svg>
+                </button>
+              </div>
+            </fieldset>
+          </form>
+          <div class="operation-message" id="operation-message" role="status" hidden></div>
+        </article>
+
+        <aside class="card activity-card settings-card settings-card-activity">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">DEVICE ACTIVITY</p>
+              <h2>Operations</h2>
+            </div>
+            <span class="activity-indicator" id="activity-indicator" aria-hidden="true"></span>
+          </div>
+          <div class="operation-state" id="operation-state">No active operation</div>
+          <p class="section-description" id="operation-description">
+            Read or apply radio settings to start an operation.
+          </p>
+          <div class="activity-divider"></div>
+          <div class="security-note">
+            <span class="security-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><path d="M10 2.5 16 5v4.3c0 3.8-2.6 6.8-6 8.2-3.4-1.4-6-4.4-6-8.2V5z"></path><path d="m7.5 9.8 1.7 1.7 3.5-3.5"></path></svg>
+            </span>
+            <p><strong>Protected by design</strong><br>Firmware upload is not available from this dashboard.</p>
+          </div>
+        </aside>
+      </div>
+      <article class="card mqtt-card settings-card settings-card-mqtt">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MQTT</p>
+            <h2>Broker connection</h2>
+          </div>
+          <span class="pill pill-neutral" id="mqtt-settings-state">Loading</span>
+        </div>
+        <p class="section-description">Configure non-secret connection parameters. Changes are saved for the next reboot.</p>
+        <form id="mqtt-settings-form">
+          <fieldset id="mqtt-settings-fields" disabled>
+            <div class="form-grid">
+              <label class="field checkbox-field">
+                <span>MQTT service enabled</span>
+                <input id="mqtt-enabled" name="enabled" type="checkbox">
+              </label>
+              <label class="field checkbox-field">
+                <span>TLS transport</span>
+                <input id="mqtt-tls" name="tlsEnabled" type="checkbox">
+              </label>
+              <label class="field">
+                <span>Broker host</span>
+                <input id="mqtt-host" name="host" type="text" maxlength="127"
+                       autocomplete="off" spellcheck="false" required>
+              </label>
+              <label class="field">
+                <span>Broker port</span>
+                <input id="mqtt-port" name="port" type="number" min="1"
+                       max="65535" step="1" required>
+              </label>
+              <label class="field">
+                <span>Client ID</span>
+                <input id="mqtt-client-id" name="clientId" type="text"
+                       maxlength="63" autocomplete="off" required>
+              </label>
+              <label class="field">
+                <span>Keep-alive (seconds)</span>
+                <input id="mqtt-keep-alive" name="keepAliveSeconds"
+                       type="number" min="1" max="3600" step="1" required>
+              </label>
+            </div>
+            <p class="form-footnote">Credentials and TLS trust material are not editable here. This dashboard uses unauthenticated HTTP; use only on a trusted isolated LAN.</p>
+            <p class="notice" id="mqtt-settings-message" role="status" hidden></p>
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">Save MQTT settings</button>
+            </div>
+          </fieldset>
+        </form>
+      </article>
+
+      <article class="card mqtt-card settings-card settings-card-network">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ETHERNET</p>
+            <h2>IPv4 configuration</h2>
+          </div>
+          <span class="pill pill-neutral" id="ethernet-settings-state">Loading</span>
+        </div>
+        <p class="section-description">DHCP is the default. Static network changes are saved for reboot and must be confirmed within 60 seconds after startup or the device restores DHCP.</p>
+        <form id="ethernet-settings-form">
+          <fieldset id="ethernet-settings-fields" disabled>
+            <div class="form-grid">
+              <label class="field checkbox-field">
+                <span>Obtain address with DHCP</span>
+                <input id="ethernet-dhcp" name="dhcpEnabled" type="checkbox">
+              </label>
+              <label class="field">
+                <span>IP address</span>
+                <input id="ethernet-address" name="address" type="text"
+                       inputmode="decimal" maxlength="15" placeholder="192.168.1.50" required>
+              </label>
+              <label class="field">
+                <span>Netmask</span>
+                <input id="ethernet-netmask" name="netmask" type="text"
+                       inputmode="decimal" maxlength="15" placeholder="255.255.255.0" required>
+              </label>
+              <label class="field">
+                <span>Default gateway</span>
+                <input id="ethernet-gateway" name="gateway" type="text"
+                       inputmode="decimal" maxlength="15" placeholder="192.168.1.1" required>
+              </label>
+            </div>
+            <p class="notice" id="ethernet-settings-message" role="status" hidden></p>
+            <div class="form-actions">
+              <button class="button button-primary" type="submit">Save network settings</button>
+            </div>
+          </fieldset>
+        </form>
+        <div class="form-actions">
+          <button class="button button-secondary" id="confirm-network-button"
+                  type="button" hidden>Confirm static network</button>
+        </div>
+      </article>
+
+      <article class="card mqtt-card settings-card settings-card-uart">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">UART SETTINGS</p>
+            <h2>Serial ports</h2>
+          </div>
+          <span class="pill pill-neutral" id="uart-settings-state">Loading</span>
+        </div>
+        <p class="section-description">Changes are applied after reboot. LPUART1 is reserved for the console; UART9 is managed by radio settings.</p>
+        <div class="uart-settings-grid">
+          <form class="uart-settings-form" data-uart-port="uart7">
+            <fieldset disabled>
+              <h3>UART7</h3>
+              <label class="field"><span>Baud rate</span><select name="baudRate">
+                <option>9600</option><option>19200</option><option>38400</option><option>57600</option><option>115200</option>
+              </select></label>
+              <label class="field"><span>Data bits</span><select name="dataBits"><option>7</option><option>8</option></select></label>
+              <label class="field"><span>Parity</span><select name="parity">
+                <option value="0">None</option><option value="1">Even</option><option value="2">Odd</option>
+              </select></label>
+              <label class="field"><span>Stop bits</span><select name="stopBits"><option>1</option><option>2</option></select></label>
+              <p class="notice uart-settings-message" role="status" hidden></p>
+              <div class="form-actions"><button class="button button-primary" type="submit">Save UART7</button></div>
+            </fieldset>
+          </form>
+          <form class="uart-settings-form" data-uart-port="usart3">
+            <fieldset disabled>
+              <h3>USART3</h3>
+              <label class="field"><span>Baud rate</span><select name="baudRate">
+                <option>9600</option><option>19200</option><option>38400</option><option>57600</option><option>115200</option>
+              </select></label>
+              <label class="field"><span>Data bits</span><select name="dataBits"><option>7</option><option>8</option></select></label>
+              <label class="field"><span>Parity</span><select name="parity">
+                <option value="0">None</option><option value="1">Even</option><option value="2">Odd</option>
+              </select></label>
+              <label class="field"><span>Stop bits</span><select name="stopBits"><option>1</option><option>2</option></select></label>
+              <p class="notice uart-settings-message" role="status" hidden></p>
+              <div class="form-actions"><button class="button button-primary" type="submit">Save USART3</button></div>
+            </fieldset>
+          </form>
+          <form class="uart-settings-form" data-uart-port="usart10">
+            <fieldset disabled>
+              <h3>USART10</h3>
+              <label class="field"><span>Baud rate</span><select name="baudRate">
+                <option>9600</option><option>19200</option><option>38400</option><option>57600</option><option>115200</option>
+              </select></label>
+              <label class="field"><span>Data bits</span><select name="dataBits"><option>7</option><option>8</option></select></label>
+              <label class="field"><span>Parity</span><select name="parity">
+                <option value="0">None</option><option value="1">Even</option><option value="2">Odd</option>
+              </select></label>
+              <label class="field"><span>Stop bits</span><select name="stopBits"><option>1</option><option>2</option></select></label>
+              <p class="notice uart-settings-message" role="status" hidden></p>
+              <div class="form-actions"><button class="button button-primary" type="submit">Save USART10</button></div>
+            </fieldset>
+          </form>
+        </div>
+      </article>
+
+      <article class="card mqtt-card settings-card settings-card-product">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PRODUCT</p>
+            <h2>Product variant</h2>
+          </div>
+          <span class="pill pill-neutral" id="product-variant-state">Unprovisioned</span>
+        </div>
+        <p class="section-description">This identifier is read-only until a product provisioning source is defined.</p>
+        <div class="status-primary" id="product-variant-value">Not provisioned</div>
+      </article>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>SynaptiX embedded systems</span>
+      <span><span class="footer-dot" aria-hidden="true"></span> Local device interface</span>
+    </footer>
+  </div>
+</body>
+</html>

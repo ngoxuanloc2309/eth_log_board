@@ -40,11 +40,11 @@ ENTRY(Reset_Handler)
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 640K
-  FLASH    (rx)    : ORIGIN = 0x8010000,   LENGTH = 768K
-  /* FLASH    (rx)    : ORIGIN = 0x8010000,   LENGTH = 512K  */
+  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 2048K
 }
 /* Highest address of the user mode stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
+_sstack = _estack - _Min_Stack_Size;
 
 _Min_Heap_Size = 0x1000;      /* required amount of heap  */
 _Min_Stack_Size = 0x1000; /* required amount of stack */

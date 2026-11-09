@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -58,6 +58,10 @@ void HAL_PKA_MspInit(PKA_HandleTypeDef* pkaHandle)
   /* USER CODE END PKA_MspInit 0 */
     /* PKA clock enable */
     __HAL_RCC_PKA_CLK_ENABLE();
+
+    /* PKA interrupt Init */
+    HAL_NVIC_SetPriority(PKA_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(PKA_IRQn);
   /* USER CODE BEGIN PKA_MspInit 1 */
 
   /* USER CODE END PKA_MspInit 1 */
@@ -74,6 +78,9 @@ void HAL_PKA_MspDeInit(PKA_HandleTypeDef* pkaHandle)
   /* USER CODE END PKA_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_PKA_CLK_DISABLE();
+
+    /* PKA interrupt Deinit */
+    HAL_NVIC_DisableIRQ(PKA_IRQn);
   /* USER CODE BEGIN PKA_MspDeInit 1 */
 
   /* USER CODE END PKA_MspDeInit 1 */
@@ -83,3 +90,4 @@ void HAL_PKA_MspDeInit(PKA_HandleTypeDef* pkaHandle)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+

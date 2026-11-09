@@ -11,7 +11,6 @@ set(MX_Defines_Syms
 # STM32CubeMX generated include paths
 set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Composite
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Inc/Legacy
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/CMSIS/Device/ST/STM32H5xx/Include
@@ -20,12 +19,6 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/CMSIS/RTOS2/Include/
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/MSC/Inc
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/App
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/COMPOSITE/Inc
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Core/Inc
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Target
-    # ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/CDC_ACM/Inc
 )
 
 # STM32CubeMX generated application sources
@@ -33,23 +26,15 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/app_freertos.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/adc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/crc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/dts.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/eth.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/fdcan.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/fmac.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/hash.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/icache.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/iwdg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/octospi.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/lptim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/usart.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/pka.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/rng.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/rtc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/sdmmc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/spi.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/tim.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/usart.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/usb.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32h5xx_it.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32h5xx_hal_msp.c
@@ -64,48 +49,33 @@ set(STM32_Drivers_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/system_stm32h5xx.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_tim_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_adc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_adc_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_dma.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_dma_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_cortex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rcc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rcc_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_flash.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_flash_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_gpio.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_dma.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_dma_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_pwr.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_pwr_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_cortex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_exti.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_crc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_crc_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_dts.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_eth.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_eth_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_fdcan.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_fmac.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_hash.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_icache.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_iwdg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_xspi.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_ll_dlyb.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_lptim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_uart.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_uart_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_pka.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rng.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rng_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_ll_rng.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rtc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_rtc_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_ll_sdmmc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_sd.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_sd_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_mmc.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_mmc_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_sdio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_spi.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_spi_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_uart.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_uart_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_pcd.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_pcd_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_ll_usb.c
@@ -114,22 +84,6 @@ set(STM32_Drivers_Src
 # Drivers Midllewares
 
 
-# set(Composite_Src
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/CDC_ACM/Src/usbd_cdc_acm.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/App/usbd_cdc_acm_if.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Core/Src/usbd_core.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Core/Src/usbd_ctlreq.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Core/Src/usbd_ioreq.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/App/usb_device.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/App/usbd_desc.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Target/usbd_conf.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/COMPOSITE/Src/usbd_composite.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/MSC/Src/usbd_msc.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/MSC/Src/usbd_msc_bot.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/MSC/Src/usbd_msc_data.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/Class/MSC/Src/usbd_msc_scsi.c
-#     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/AL94_USB_Composite/COMPOSITE/App/usbd_msc_if.c
-# )
 set(RTOS2_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Middlewares/Third_Party/FreeRTOS/Source/croutine.c
@@ -152,9 +106,7 @@ set(MX_LINK_DIRS
 set(MX_LINK_LIBS 
     STM32_Drivers
     ${TOOLCHAIN_LINK_LIBRARIES}
-    # Composite
-	RTOS2
-	
+    RTOS2	
 )
 # Interface library for includes and symbols
 add_library(stm32cubemx INTERFACE)
@@ -166,11 +118,6 @@ add_library(STM32_Drivers OBJECT)
 target_sources(STM32_Drivers PRIVATE ${STM32_Drivers_Src})
 target_link_libraries(STM32_Drivers PUBLIC stm32cubemx)
 
-
-# Create Composite static library
-# add_library(Composite OBJECT)
-# target_sources(Composite PRIVATE ${Composite_Src})
-# target_link_libraries(Composite PUBLIC stm32cubemx)
 
 # Create RTOS2 static library
 add_library(RTOS2 OBJECT)

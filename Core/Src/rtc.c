@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -21,6 +21,7 @@
 #include "rtc.h"
 
 /* USER CODE BEGIN 0 */
+#define RTC_INITIALIZED_MARKER 0x52544331U
 
 /* USER CODE END 0 */
 
@@ -68,31 +69,31 @@ void MX_RTC_Init(void)
   }
 
   /* USER CODE BEGIN Check_RTC_BKUP */
-  if(HAL_RTCEx_BKUPRead(&hrtc,RTC_BKP_DR1) == 0x13FA) return;
+  if(HAL_RTCEx_BKUPRead(&hrtc,RTC_BKP_DR1) == 0x56FA) return;
   /* USER CODE END Check_RTC_BKUP */
 
   /** Initialize RTC and set the Time and Date
   */
-  sTime.Hours = 16;
-  sTime.Minutes = 41;
+  sTime.Hours = 0x0;
+  sTime.Minutes = 0x0;
   sTime.Seconds = 0x0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK)
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
   {
     Error_Handler();
   }
   sDate.WeekDay = RTC_WEEKDAY_MONDAY;
-  sDate.Month = RTC_MONTH_SEPTEMBER;
-  sDate.Date = 0x3;
-  sDate.Year = 0x26;
+  sDate.Month = RTC_MONTH_JANUARY;
+  sDate.Date = 0x1;
+  sDate.Year = 0x0;
 
-  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN RTC_Init 2 */
-  HAL_RTCEx_BKUPWrite(&hrtc,RTC_BKP_DR1,0x12FA);
+  HAL_RTCEx_BKUPWrite(&hrtc,RTC_BKP_DR1,0x56FA);
   /* USER CODE END RTC_Init 2 */
 
 }
@@ -145,3 +146,4 @@ void HAL_RTC_MspDeInit(RTC_HandleTypeDef* rtcHandle)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+

@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -17,7 +17,6 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 /* USER CODE BEGIN Includes */
@@ -70,27 +69,6 @@ void HAL_MspInit(void)
   /* System interrupt init*/
   /* PendSV_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
-
-  /* Peripheral interrupt init */
-  /* IWDG_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(IWDG_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(IWDG_IRQn);
-
-  /** Enable the VREF clock
-  */
-  __HAL_RCC_VREF_CLK_ENABLE();
-
-  /** Configure the internal voltage reference buffer voltage scale
-  */
-  HAL_SYSCFG_VREFBUF_VoltageScalingConfig(SYSCFG_VREFBUF_VOLTAGE_SCALE1);
-
-  /** Enable the Internal Voltage Reference buffer
-  */
-  HAL_SYSCFG_EnableVREFBUF();
-
-  /** Configure the internal voltage reference buffer high impedance mode
-  */
-  HAL_SYSCFG_VREFBUF_HighImpedanceConfig(SYSCFG_VREFBUF_HIGH_IMPEDANCE_DISABLE);
 
   /* USER CODE BEGIN MspInit 1 */
 

@@ -30,6 +30,8 @@
 #include <sys/time.h>
 #include <sys/times.h>
 
+#include "rtc.h"
+
 
 /* Variables */
 extern int __io_putchar(int ch) __attribute__((weak));
@@ -89,27 +91,27 @@ __attribute__((weak)) int _write(int file, char *ptr, int len)
   return len;
 }
 
-int _close(int file)
+__attribute__((weak)) int _close(int file)
 {
   (void)file;
   return -1;
 }
 
 
-int _fstat(int file, struct stat *st)
+__attribute__((weak)) int _fstat(int file, struct stat *st)
 {
   (void)file;
   st->st_mode = S_IFCHR;
   return 0;
 }
 
-int _isatty(int file)
+__attribute__((weak)) int _isatty(int file)
 {
   (void)file;
   return 1;
 }
 
-int _lseek(int file, int ptr, int dir)
+__attribute__((weak)) int _lseek(int file, int ptr, int dir)
 {
   (void)file;
   (void)ptr;
@@ -117,7 +119,7 @@ int _lseek(int file, int ptr, int dir)
   return 0;
 }
 
-int _open(char *path, int flags, ...)
+__attribute__((weak)) int _open(char *path, int flags, ...)
 {
   (void)path;
   (void)flags;
@@ -132,7 +134,7 @@ int _wait(int *status)
   return -1;
 }
 
-int _unlink(char *name)
+__attribute__((weak)) int _unlink(char *name)
 {
   (void)name;
   errno = ENOENT;
@@ -145,7 +147,84 @@ clock_t _times(struct tms *buf)
   return -1;
 }
 
-int _stat(const char *file, struct stat *st)
+static int rtc_is_leap_year(uint32_t year)
+{
+  return ((year % 4U) == 0U) &&
+         (((year % 100U) != 0U) || ((year % 400U) == 0U));
+}
+
+static uint32_t rtc_days_in_month(uint32_t year, uint32_t month)
+{
+  static const uint8_t days_per_month[] = {
+    31U, 28U, 31U, 30U, 31U, 30U, 31U, 31U, 30U, 31U, 30U, 31U
+  };
+
+  if (month == 2U && rtc_is_leap_year(year)) {
+    return 29U;
+  }
+  return days_per_month[month - 1U];
+}
+
+int _gettimeofday(struct timeval *tv, void *tz)
+{
+  RTC_TimeTypeDef rtc_time = {0};
+  RTC_DateTypeDef rtc_date = {0};
+  uint32_t year;
+  uint64_t days = 0U;
+  uint64_t seconds;
+  time_t epoch;
+
+  (void)tz;
+
+  if (tv == NULL) {
+    errno = EINVAL;
+    return -1;
+  }
+  if (hrtc.Instance != RTC) {
+    errno = ENODEV;
+    return -1;
+  }
+  if (HAL_RTC_GetTime(&hrtc, &rtc_time, RTC_FORMAT_BIN) != HAL_OK ||
+      HAL_RTC_GetDate(&hrtc, &rtc_date, RTC_FORMAT_BIN) != HAL_OK) {
+    errno = EIO;
+    return -1;
+  }
+
+  year = 2000U + rtc_date.Year;
+  if (rtc_date.Year > 99U || rtc_date.Month < 1U || rtc_date.Month > 12U ||
+      rtc_date.Date < 1U ||
+      rtc_date.Date > rtc_days_in_month(year, rtc_date.Month) ||
+      rtc_time.Hours > 23U || rtc_time.Minutes > 59U ||
+      rtc_time.Seconds > 59U ||
+      rtc_time.SubSeconds > rtc_time.SecondFraction) {
+    errno = EIO;
+    return -1;
+  }
+
+  for (uint32_t calendar_year = 1970U; calendar_year < year; calendar_year++) {
+    days += rtc_is_leap_year(calendar_year) ? 366U : 365U;
+  }
+  for (uint32_t month = 1U; month < rtc_date.Month; month++) {
+    days += rtc_days_in_month(year, month);
+  }
+  days += rtc_date.Date - 1U;
+
+  seconds = (((days * 24U + rtc_time.Hours) * 60U + rtc_time.Minutes) * 60U) +
+            rtc_time.Seconds;
+  epoch = (time_t)seconds;
+  if ((uint64_t)epoch != seconds) {
+    errno = EOVERFLOW;
+    return -1;
+  }
+
+  tv->tv_sec = epoch;
+  tv->tv_usec = (suseconds_t)(((uint64_t)(rtc_time.SecondFraction -
+                                          rtc_time.SubSeconds) * 1000000U) /
+                              ((uint64_t)rtc_time.SecondFraction + 1U));
+  return 0;
+}
+
+__attribute__((weak)) int _stat(const char *file, struct stat *st)
 {
   (void)file;
   st->st_mode = S_IFCHR;

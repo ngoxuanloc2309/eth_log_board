@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -98,14 +98,14 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef* ethHandle)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**ETH GPIO Configuration
     PC1     ------> ETH_MDC
-    PA1     ------> ETH_REF_CLK
+    PA1     ------> ETH_RMII_REF_CLK
     PA2     ------> ETH_MDIO
-    PA5     ------> ETH_TX_EN
-    PA7     ------> ETH_CRS_DV
-    PC4     ------> ETH_RXD0
-    PC5     ------> ETH_RXD1
-    PB12     ------> ETH_TXD0
-    PB15     ------> ETH_TXD1
+    PA5     ------> ETH_RMII_TX_EN
+    PA7     ------> ETH_RMII_CRS_DV
+    PC4     ------> ETH_RMII_RXD0
+    PC5     ------> ETH_RMII_RXD1
+    PB12     ------> ETH_RMII_TXD0
+    PB15     ------> ETH_RMII_TXD1
     */
     GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -154,14 +154,14 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* ethHandle)
 
     /**ETH GPIO Configuration
     PC1     ------> ETH_MDC
-    PA1     ------> ETH_REF_CLK
+    PA1     ------> ETH_RMII_REF_CLK
     PA2     ------> ETH_MDIO
-    PA5     ------> ETH_TX_EN
-    PA7     ------> ETH_CRS_DV
-    PC4     ------> ETH_RXD0
-    PC5     ------> ETH_RXD1
-    PB12     ------> ETH_TXD0
-    PB15     ------> ETH_TXD1
+    PA5     ------> ETH_RMII_TX_EN
+    PA7     ------> ETH_RMII_CRS_DV
+    PC4     ------> ETH_RMII_RXD0
+    PC5     ------> ETH_RMII_RXD1
+    PB12     ------> ETH_RMII_TXD0
+    PB15     ------> ETH_RMII_TXD1
     */
     HAL_GPIO_DeInit(GPIOC, GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5);
 
@@ -181,3 +181,4 @@ void HAL_ETH_MspDeInit(ETH_HandleTypeDef* ethHandle)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+

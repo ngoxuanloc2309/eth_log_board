@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -52,30 +52,24 @@ void MemManage_Handler(void);
 void BusFault_Handler(void);
 void UsageFault_Handler(void);
 void DebugMon_Handler(void);
-void IWDG_IRQHandler(void);
-void TIM1_BRK_IRQHandler(void);
-void TIM1_UP_IRQHandler(void);
-void TIM1_TRG_COM_IRQHandler(void);
-void TIM1_CC_IRQHandler(void);
-void TIM2_IRQHandler(void);
-void TIM3_IRQHandler(void);
 void TIM6_IRQHandler(void);
-void USART1_IRQHandler(void);
+void SPI1_IRQHandler(void);
 void USART3_IRQHandler(void);
+void LPUART1_IRQHandler(void);
+void LPTIM1_IRQHandler(void);
+void LPTIM2_IRQHandler(void);
 void USB_DRD_FS_IRQHandler(void);
 void USART10_IRQHandler(void);
 void UART7_IRQHandler(void);
 void UART9_IRQHandler(void);
 void ETH_IRQHandler(void);
 void ETH_WKUP_IRQHandler(void);
+void RNG_IRQHandler(void);
 void HASH_IRQHandler(void);
+void PKA_IRQHandler(void);
+void LPTIM3_IRQHandler(void);
 /* USER CODE BEGIN EFP */
-void TIM1_BRK_IRQHandler(void);
-void TIM1_UP_IRQHandler(void);
-void TIM1_TRG_COM_IRQHandler(void);
-void TIM1_CC_IRQHandler(void);
-void TIM2_IRQHandler(void);
-void TIM3_IRQHandler(void);
+
 /* USER CODE END EFP */
 
 #ifdef __cplusplus
