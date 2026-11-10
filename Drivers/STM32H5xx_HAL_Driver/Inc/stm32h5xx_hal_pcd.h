@@ -119,7 +119,6 @@ typedef struct
   uint32_t                BESL;
   uint32_t                FrameNumber; /*!< Store Current Frame number        */
 
-
   uint32_t lpm_active;                 /*!< Enable or disable the Link Power Management .
                                        This parameter can be set to ENABLE or DISABLE        */
 
@@ -175,6 +174,7 @@ typedef struct
   */
 #define PCD_PHY_ULPI                 1U
 #define PCD_PHY_EMBEDDED             2U
+#define PCD_HS_PHY_EMBEDDED          3U
 #define PCD_PHY_UTMI                 3U
 /**
   * @}
@@ -226,7 +226,6 @@ typedef struct
 #define __HAL_PCD_CLEAR_FLAG(__HANDLE__, __INTERRUPT__)           (((__HANDLE__)->Instance->ISTR)\
                                                                    &= (uint16_t)(~(__INTERRUPT__)))
 #endif /* defined (USB_DRD_FS) */
-
 /**
   * @}
   */
@@ -392,12 +391,12 @@ PCD_StateTypeDef HAL_PCD_GetState(PCD_HandleTypeDef const *hpcd);
   * @{
   */
 #if defined (USB_OTG_FS) || defined (USB_OTG_HS)
-#define USB_OTG_FS_WAKEUP_EXTI_LINE                                   (0x1U << 15)  /*!< USB FS EXTI Line WakeUp Interrupt */
-#define USB_OTG_HS_WAKEUP_EXTI_LINE                                   (0x1U << 28)  /*!< USB HS EXTI Line WakeUp Interrupt */
+#define USB_OTG_FS_WAKEUP_EXTI_LINE                                   (0x1UL << 15)  /*!< USB FS EXTI Line WakeUp Interrupt */
+#define USB_OTG_HS_WAKEUP_EXTI_LINE                                   (0x1UL << 28)  /*!< USB HS EXTI Line WakeUp Interrupt */
 #endif /* defined (USB_OTG_FS) || defined (USB_OTG_HS) */
 
 #if defined (USB_DRD_FS)
-#define USB_WAKEUP_EXTI_LINE                                          (0x1U << 15)  /*!< USB FS EXTI Line WakeUp Interrupt */
+#define USB_WAKEUP_EXTI_LINE                                          (0x1UL << 15)  /*!< USB FS EXTI Line WakeUp Interrupt */
 #endif /* defined (USB_DRD_FS) */
 
 /**

@@ -1,5 +1,5 @@
 /*
- * coreMQTT Agent <v1.3.1>
+ * coreMQTT Agent <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -38,11 +38,18 @@ void harness()
     pNetworkBuffer = malloc( sizeof( MQTTFixedBuffer_t ) );
     pTransportInterface = malloc( sizeof( TransportInterface_t ) );
 
+    uint8_t * pAckPropsBuffer;
+    size_t ackPropsBufferSize;
+
+    pAckPropsBuffer = malloc( ackPropsBufferSize );
+
     MQTTAgent_Init( pMqttAgentContext,
                     pMsgInterface,
                     pNetworkBuffer,
                     pTransportInterface,
                     getCurrentTimeMs,
                     incomingCallback,
-                    pIncomingPacketContext );
+                    pIncomingPacketContext,
+                    pAckPropsBuffer,
+                    ackPropsBufferSize );
 }

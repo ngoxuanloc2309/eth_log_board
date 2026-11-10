@@ -1,11 +1,11 @@
 name : "coreMQTT Agent"
-version: "v1.3.1"
+version: "v2.0.0"
 description: |
   "Agent for thread-safe use of coreMQTT.\n"
 license: "MIT"
 dependencies:
   - name : "coreMQTT"
-    version: "v2.3.1"
+    version: "v5.0.2"
     license: "MIT"
     repository:
       type: "git"

@@ -1,5 +1,5 @@
 /*
- * coreMQTT Agent <v1.3.1>
+ * coreMQTT Agent <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -151,12 +151,14 @@ typedef void (* MQTTAgentIncomingPublishCallback_t )( struct MQTTAgentContext * 
  */
 typedef struct MQTTAgentContext
 {
-    MQTTContext_t mqttContext;                                          /**< MQTT connection information used by coreMQTT. */
-    MQTTAgentMessageInterface_t agentInterface;                         /**< Struct of function pointers for agent messaging. */
-    MQTTAgentAckInfo_t pPendingAcks[ MQTT_AGENT_MAX_OUTSTANDING_ACKS ]; /**< List of pending acknowledgment packets. */
-    MQTTAgentIncomingPublishCallback_t pIncomingCallback;               /**< Callback to invoke for incoming publishes. */
-    void * pIncomingCallbackContext;                                    /**< Context for incoming publish callback. */
-    bool packetReceivedInLoop;                                          /**< Whether a MQTT_ProcessLoop() call received a packet. */
+    MQTTContext_t mqttContext;                                                   /**< MQTT connection information used by coreMQTT. */
+    MQTTAgentMessageInterface_t agentInterface;                                  /**< Struct of function pointers for agent messaging. */
+    MQTTAgentAckInfo_t pPendingAcks[ MQTT_AGENT_MAX_OUTSTANDING_ACKS ];          /**< List of pending acknowledgment packets. */
+    MQTTAgentIncomingPublishCallback_t pIncomingCallback;                        /**< Callback to invoke for incoming publishes. */
+    void * pIncomingCallbackContext;                                             /**< Context for incoming publish callback. */
+    bool packetReceivedInLoop;                                                   /**< Whether a MQTT_ProcessLoop() call received a packet. */
+    MQTTPubAckInfo_t pIncomingPublishRecords[ MQTT_AGENT_MAX_OUTSTANDING_ACKS ]; /**< Array used to maintain the incoming publish records and their state by the coreMQTT library. */
+    MQTTPubAckInfo_t pOutgoingPublishRecords[ MQTT_AGENT_MAX_OUTSTANDING_ACKS ]; /**< Array used to maintain the outgoing publish records and their state by the coreMQTT library. */
 } MQTTAgentContext_t;
 
 /**
@@ -165,8 +167,9 @@ typedef struct MQTTAgentContext
  */
 typedef struct MQTTAgentSubscribeArgs
 {
-    MQTTSubscribeInfo_t * pSubscribeInfo; /**< @brief List of MQTT subscriptions. */
-    size_t numSubscriptions;              /**< @brief Number of elements in `pSubscribeInfo`. */
+    MQTTSubscribeInfo_t * pSubscribeInfo;  /**< @brief List of MQTT subscriptions. */
+    size_t numSubscriptions;               /**< @brief Number of elements in `pSubscribeInfo`. */
+    const MQTTPropBuilder_t * pProperties; /**< @brief Optional MQTT v5 properties for subscribe/unsubscribe. */
 } MQTTAgentSubscribeArgs_t;
 
 /**
@@ -175,11 +178,33 @@ typedef struct MQTTAgentSubscribeArgs
  */
 typedef struct MQTTAgentConnectArgs
 {
-    MQTTConnectInfo_t * pConnectInfo; /**< @brief MQTT CONNECT packet information. */
-    MQTTPublishInfo_t * pWillInfo;    /**< @brief Optional Last Will and Testament. */
-    uint32_t timeoutMs;               /**< @brief Maximum timeout for a CONNACK packet. */
-    bool sessionPresent;              /**< @brief Output flag set if a previous session was present. */
+    MQTTConnectInfo_t * pConnectInfo;          /**< @brief MQTT CONNECT packet information. */
+    MQTTPublishInfo_t * pWillInfo;             /**< @brief Optional Last Will and Testament. */
+    uint32_t timeoutMs;                        /**< @brief Maximum timeout for a CONNACK packet. */
+    bool sessionPresent;                       /**< @brief Output flag set if a previous session was present. */
+    MQTTPropBuilder_t * pProperties;           /**< @brief Optional MQTT v5 connect properties. */
+    const MQTTPropBuilder_t * pWillProperties; /**< @brief Optional MQTT v5 will properties. */
 } MQTTAgentConnectArgs_t;
+
+/**
+ * @ingroup mqtt_agent_struct_types
+ * @brief Struct holding arguments for a PUBLISH call.
+ */
+typedef struct MQTTAgentPublishArgs
+{
+    MQTTPublishInfo_t * pPublishInfo;      /**< @brief Publish information. */
+    const MQTTPropBuilder_t * pProperties; /**< @brief Optional MQTT v5 publish properties. */
+} MQTTAgentPublishArgs_t;
+
+/**
+ * @ingroup mqtt_agent_struct_types
+ * @brief Struct holding arguments for a DISCONNECT call.
+ */
+typedef struct MQTTAgentDisconnectArgs
+{
+    const MQTTPropBuilder_t * pProperties;          /**< @brief Optional MQTT v5 disconnect properties. */
+    const MQTTSuccessFailReasonCode_t * reasonCode; /**< @brief Optional MQTT v5 disconnect reason code. */
+} MQTTAgentDisconnectArgs_t;
 
 /**
  * @ingroup mqtt_agent_struct_types
@@ -208,6 +233,8 @@ typedef struct MQTTAgentCommandInfo
  * @param[in] incomingCallback The callback to execute when receiving publishes.
  * @param[in] pIncomingPacketContext A pointer to a context structure defined by
  * the application writer.
+ * @param[in] pAckPropsBuffer Buffer for storing ACK properties in QoS > 0 flows.
+ * @param[in] ackPropsBufferSize Size of the ACK properties buffer.
  *
  * @note The @p pIncomingPacketContext context provided for the incoming publish
  * callback MUST remain in scope throughout the period that the agent task is running.
@@ -290,7 +317,9 @@ MQTTStatus_t MQTTAgent_Init( MQTTAgentContext_t * pMqttAgentContext,
                              const TransportInterface_t * pTransportInterface,
                              MQTTGetCurrentTimeFunc_t getCurrentTimeMs,
                              MQTTAgentIncomingPublishCallback_t incomingCallback,
-                             void * pIncomingPacketContext );
+                             void * pIncomingPacketContext,
+                             uint8_t * pAckPropsBuffer,
+                             size_t ackPropsBufferSize );
 /* @[declare_mqtt_agent_init] */
 
 /**
@@ -322,7 +351,7 @@ MQTTStatus_t MQTTAgent_Init( MQTTAgentContext_t * pMqttAgentContext,
  * {
  *    // Terminate command was processed but MQTT connection was not
  *    // closed. Thus, need to close both MQTT and socket connections.
- *    status = MQTT_Disconnect( &( mqttAgentContext.mqttContext ) );
+ *    status = MQTT_Disconnect( &( mqttAgentContext.mqttContext ), NULL, NULL );
  *    assert( status == MQTTSuccess );
  *    Platform_DisconnectNetwork( mqttAgentContext.mqttContext.transportInterface.pNetworkContext );
  * }
@@ -365,7 +394,7 @@ MQTTStatus_t MQTTAgent_CommandLoop( MQTTAgentContext_t * pMqttAgentContext );
  * // Refer to the MQTT_Connect API for a more detailed example.
  *
  * // Attempt to resume session with the broker.
- * status = MQTT_Connect( &( mqttAgentContext.mqttContext ), &connectInfo, &willInfo, 100, &sessionPresent )
+ * status = MQTT_Connect( &( mqttAgentContext.mqttContext ), &connectInfo, &willInfo, 100, &sessionPresent, NULL, NULL );
  *
  * if( status == MQTTSuccess )
  * {
@@ -542,7 +571,7 @@ MQTTStatus_t MQTTAgent_Unsubscribe( const MQTTAgentContext_t * pMqttAgentContext
  * @brief Add a command to call MQTT_Publish() for an MQTT connection.
  *
  * @param[in] pMqttAgentContext The MQTT agent to use.
- * @param[in] pPublishInfo MQTT PUBLISH information.
+ * @param[in] pPublishArgs MQTT PUBLISH arguments including publish info and optional v5 properties.
  * @param[in] pCommandInfo The information pertaining to the command, including:
  *  - cmdCompleteCallback Optional callback to invoke when the command completes.
  *  - pCmdCompleteCallbackContext Optional completion callback context.
@@ -594,7 +623,7 @@ MQTTStatus_t MQTTAgent_Unsubscribe( const MQTTAgentContext_t * pMqttAgentContext
  */
 /* @[declare_mqtt_agent_publish] */
 MQTTStatus_t MQTTAgent_Publish( const MQTTAgentContext_t * pMqttAgentContext,
-                                MQTTPublishInfo_t * pPublishInfo,
+                                MQTTAgentPublishArgs_t * pPublishArgs,
                                 const MQTTAgentCommandInfo_t * pCommandInfo );
 /* @[declare_mqtt_agent_publish] */
 
@@ -814,6 +843,7 @@ MQTTStatus_t MQTTAgent_Connect( const MQTTAgentContext_t * pMqttAgentContext,
  * task be responsible for disconnecting the MQTT connection.
  *
  * @param[in] pMqttAgentContext The MQTT agent to use.
+ * @param[in] pDisconnectArgs Optional disconnect arguments including v5 properties and reason code.
  * @param[in] pCommandInfo The information pertaining to the command, including:
  *  - cmdCompleteCallback Optional callback to invoke when the command completes.
  *  - pCmdCompleteCallbackContext Optional completion callback context.
@@ -857,6 +887,7 @@ MQTTStatus_t MQTTAgent_Connect( const MQTTAgentContext_t * pMqttAgentContext,
  */
 /* @[declare_mqtt_agent_disconnect] */
 MQTTStatus_t MQTTAgent_Disconnect( const MQTTAgentContext_t * pMqttAgentContext,
+                                   MQTTAgentDisconnectArgs_t * pDisconnectArgs,
                                    const MQTTAgentCommandInfo_t * pCommandInfo );
 /* @[declare_mqtt_agent_disconnect] */
 

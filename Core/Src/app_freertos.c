@@ -19,8 +19,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "app_freertos.h"
-#include "stm32h5xx.h"
-#include "dtu_board.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -123,7 +121,7 @@ int shell_recv_char(void *arg);
 /* USER CODE END Variables */
 /* Definitions for mainTask */
 osThreadId_t mainTaskHandle;
-uint32_t MainBufferTask[ 2048U ];
+uint32_t MainBufferTask[ 256 ];
 osStaticThreadDef_t MainControlBlocTask;
 const osThreadAttr_t mainTask_attributes = {
   .name = "mainTask",
@@ -362,150 +360,6 @@ __weak void StartMainTask(void *argument)
 }
 
 /* Private application code --------------------------------------------------*/
-indicator_service_result_t indicator_service_set_error(
-    indicator_error_t error,
-    bool active)
-{
-  indicator_error_event_t event;
-  uint16_t error_mask = (uint16_t)error;
-
-  if (error_mask < (uint16_t)INDICATOR_ERROR_CONFIGURATION ||
-      error_mask > (uint16_t)INDICATOR_ERROR_UNKNOWN ||
-      (error_mask & (uint16_t)(error_mask - 1U)) != 0U) {
-    return INDICATOR_SERVICE_RESULT_INVALID_ARGUMENT;
-  }
-  if (indicator_error_queue == NULL) {
-    return INDICATOR_SERVICE_RESULT_NOT_READY;
-  }
-
-  event.error = error;
-  event.active = active;
-  if (xQueueSend(indicator_error_queue, &event, 100U) != pdPASS) {
-    return INDICATOR_SERVICE_RESULT_QUEUE_FULL;
-  }
-  return INDICATOR_SERVICE_RESULT_OK;
-}
-
-static bool indicator_error_queue_init(void)
-{
-  indicator_error_queue = xQueueCreateStatic(
-      INDICATOR_ERROR_QUEUE_LENGTH,
-      (UBaseType_t)sizeof(indicator_error_event_t),
-      indicator_error_queue_storage,
-      &indicator_error_queue_control_block);
-  return indicator_error_queue != NULL;
-}
-
-static void indicator_report_error(indicator_error_t error, bool active)
-{
-  const indicator_service_result_t result =
-      indicator_service_set_error(error, active);
-
-  if (result != INDICATOR_SERVICE_RESULT_OK) {
-    LOGW(TAG, "Could not queue indicator error update=%u result=%u",
-         (unsigned int)error, (unsigned int)result);
-  }
-}
-
-static void button_task(void *arg)
-{
-  button_app_t button_app;
-  const button_control_if_t *const button_control =
-      dtu_board_button_control_if();
-  TickType_t last_wake_time = xTaskGetTickCount();
-
-  (void)arg;
-  if (!button_app_init(&button_app) || button_control == NULL ||
-      button_control->is_pressed == NULL ||
-      button_control->request_reboot == NULL ||
-      button_control->request_upgrade_mode == NULL) {
-    LOGE(TAG, "Button application initialization failed");
-    vTaskDelete(NULL);
-    return;
-  }
-
-  for (;;) {
-    const uint32_t now_ms =
-        (uint32_t)pdTICKS_TO_MS(xTaskGetTickCount());
-    const button_app_action_t action = button_app_process(
-        &button_app, button_control->is_pressed(button_control->context),
-        now_ms);
-
-    if (action == BUTTON_APP_ACTION_REBOOT) {
-      LOGI(TAG, "Button double-click requested device reboot");
-      button_control->request_reboot(button_control->context);
-      LOGE(TAG, "Device reboot request returned unexpectedly");
-      vTaskDelete(NULL);
-      return;
-    }
-    if (action == BUTTON_APP_ACTION_UPGRADE_MODE) {
-      LOGI(TAG, "Button long-press requested ROM bootloader mode");
-      button_control->request_upgrade_mode(button_control->context);
-      LOGE(TAG, "Bootloader mode request returned unexpectedly");
-      vTaskDelete(NULL);
-      return;
-    }
-    if (action == BUTTON_APP_ACTION_ERROR) {
-      LOGE(TAG, "Button gesture processing failed");
-      vTaskDelete(NULL);
-      return;
-    }
-
-    vTaskDelayUntil(&last_wake_time,
-                    pdMS_TO_TICKS(BUTTON_APP_SCAN_PERIOD_MS));
-  }
-}
-
-static void indicator_task(void *arg)
-{
-  indicator_app_t indicator_app;
-  const indicator_led_if_t *const led_if =
-      dtu_board_indicator_led_if();
-  TickType_t last_wake_time = xTaskGetTickCount();
-
-  (void)arg;
-  if (indicator_app_init(&indicator_app) != INDICATOR_RESULT_OK ||
-      led_if == NULL || led_if->apply_frame == NULL) {
-    LOGE(TAG, "Indicator application initialization failed");
-    vTaskDelete(NULL);
-    return;
-  }
-
-  for (;;) {
-    indicator_error_event_t event;
-    indicator_led_frame_t frame;
-    indicator_result_t result;
-
-    while (xQueueReceive(indicator_error_queue, &event, 0U) == pdPASS) {
-      result = indicator_app_set_error(&indicator_app, event.error,
-                                       event.active);
-      if (result != INDICATOR_RESULT_OK) {
-        LOGE(TAG, "Invalid indicator error event=%u result=%u",
-             (unsigned int)event.error, (unsigned int)result);
-        vTaskDelete(NULL);
-        return;
-      }
-    }
-
-    result = indicator_app_process(
-        &indicator_app, true, MX_LWIP_IsLinkUp(),
-        (uint32_t)pdTICKS_TO_MS(xTaskGetTickCount()), &frame);
-    if (result != INDICATOR_RESULT_OK) {
-      LOGE(TAG, "Indicator state processing failed result=%u",
-           (unsigned int)result);
-      vTaskDelete(NULL);
-      return;
-    }
-    if (!led_if->apply_frame(led_if->context, &frame)) {
-      LOGE(TAG, "Board rejected indicator LED frame");
-      vTaskDelete(NULL);
-      return;
-    }
-
-    vTaskDelayUntil(&last_wake_time,
-                    pdMS_TO_TICKS(INDICATOR_APP_UPDATE_PERIOD_MS));
-  }
-}
 /* USER CODE BEGIN Application */
 static bool settings_install_uarts(const settings_config_t *config)
 {
@@ -857,3 +711,4 @@ int shell_recv_char(void *arg){
     return c;
 }
 /* USER CODE END Application */
+

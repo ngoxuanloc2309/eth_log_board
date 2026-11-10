@@ -1,5 +1,5 @@
 /*
- * coreMQTT Agent <v1.3.1>
+ * coreMQTT Agent <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -28,13 +28,16 @@
 void harness()
 {
     MQTTAgentContext_t * pMqttAgentContext;
+    MQTTAgentDisconnectArgs_t * pDisconnectArgs;
     MQTTAgentCommandInfo_t * pCommandInfo;
 
     pMqttAgentContext = allocateMqttAgentContext( NULL );
     __CPROVER_assume( isValidMqttAgentContext( pMqttAgentContext ) );
 
+    pDisconnectArgs = malloc( sizeof( MQTTAgentDisconnectArgs_t ) );
     pCommandInfo = malloc( sizeof( MQTTAgentCommandInfo_t ) );
 
     MQTTAgent_Disconnect( pMqttAgentContext,
+                          pDisconnectArgs,
                           pCommandInfo );
 }

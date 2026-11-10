@@ -119,9 +119,6 @@ int main(void)
   MX_GPIO_Init();
   MX_ICACHE_Init();
   MX_SPI1_Init();
-  if (false == sx_spi_init()) {
-    Error_Handler();
-  }
   MX_USB_PCD_Init();
   MX_LPTIM1_Init();
   MX_LPTIM2_Init();

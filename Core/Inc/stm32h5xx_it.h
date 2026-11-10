@@ -58,7 +58,6 @@ void USART3_IRQHandler(void);
 void LPUART1_IRQHandler(void);
 void LPTIM1_IRQHandler(void);
 void LPTIM2_IRQHandler(void);
-void USB_DRD_FS_IRQHandler(void);
 void USART10_IRQHandler(void);
 void UART7_IRQHandler(void);
 void UART9_IRQHandler(void);

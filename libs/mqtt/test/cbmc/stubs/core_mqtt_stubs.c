@@ -1,5 +1,5 @@
 /*
- * coreMQTT Agent <v1.3.1>
+ * coreMQTT Agent <DEVELOPMENT BRANCH>
  * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -146,7 +146,10 @@ MQTTStatus_t MQTT_ProcessLoop( MQTTContext_t * pContext )
         /* Invoke event callback. */
         pContext->appCallback( pContext,
                                pPacketInfo,
-                               pDeserializedInfo );
+                               pDeserializedInfo,
+                               NULL,
+                               NULL,
+                               NULL );
 
         terminate = true;
     }
