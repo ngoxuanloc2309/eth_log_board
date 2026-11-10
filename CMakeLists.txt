@@ -158,6 +158,24 @@ add_subdirectory(libs/logger)
 target_compile_definitions(logger PRIVATE FREE_RTOS=1)
 
 target_link_libraries(logger PUBLIC stm32cubemx)
+
+# SimplePLC is consumed as a library: the product port supplies host-specific
+# transports while the library provides the engine, board, and protocol layers.
+set(SPLC_AS_LIBRARY ON)
+set(SPLC_OPTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/port/splc")
+set(SPLC_OS_INCLUDE_DIRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM33_NTZ/non_secure"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc"
+)
+# SPLC_LOGGER_BUILTIN=0 uses the host logger from SPLC layer sources too.
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/libs/logger")
+add_subdirectory(libs/simple_plc)
+add_subdirectory(port/splc)
+
+target_include_directories(stm32cubemx INTERFACE
+    "${CMAKE_CURRENT_SOURCE_DIR}/port/splc"
+)
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
@@ -185,6 +203,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     logger
     bsp
     services
+    splc_dtu_port
     # Add user defined libraries
 )
 

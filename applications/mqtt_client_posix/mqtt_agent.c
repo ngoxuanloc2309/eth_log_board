@@ -423,7 +423,7 @@ MQTTStatus_t mqtt_agent_connect(MQTTAgentLibrary_t **agent_out,
     }
 
     MQTTConnectInfo_t connect_info = {0};
-    connect_info.cleanSession = true;
+    connect_info.cleanSession = !config->persistent_session;
     connect_info.keepAliveSeconds = config->keepAlive;
     connect_info.pClientIdentifier = config->client_id;
     connect_info.clientIdentifierLength = strlen(config->client_id);
@@ -579,6 +579,17 @@ MQTTStatus_t mqtt_agent_publish(MQTTAgentLibrary_t *agent,
                                 size_t payload_length,
                                 MQTTQoS_t qos)
 {
+    return mqtt_agent_publish_with_options(agent, topic, payload,
+                                           payload_length, qos, false);
+}
+
+MQTTStatus_t mqtt_agent_publish_with_options(MQTTAgentLibrary_t *agent,
+                                             const char *topic,
+                                             const void *payload,
+                                             size_t payload_length,
+                                             MQTTQoS_t qos,
+                                             bool retain)
+{
     if (agent == NULL || topic == NULL || topic[0] == '\0' ||
         (payload == NULL && payload_length != 0U) ||
         qos < MQTTQoS0 || qos > MQTTQoS2 ||
@@ -593,6 +604,7 @@ MQTTStatus_t mqtt_agent_publish(MQTTAgentLibrary_t *agent,
     publish_info.topicNameLength = strlen(topic);
     publish_info.pPayload = payload;
     publish_info.payloadLength = payload_length;
+    publish_info.retain = retain;
     MQTTAgentCommandInfo_t command_info = {
         .cmdCompleteCallback = command_complete,
         .pCmdCompleteCallbackContext = (MQTTAgentCommandContext_t *)agent,

@@ -1,6 +1,7 @@
 #ifndef MQTT_AGENT_LIBRARY_H
 #define MQTT_AGENT_LIBRARY_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -19,6 +20,8 @@ typedef struct
     const char *username;
     const char *password;
     size_t keepAlive;
+    /* Zero-initialized configurations keep the historical clean-session behavior. */
+    bool persistent_session;
     /* Will message info*/
     const char *will_topic;
     const char *will_message;
@@ -60,6 +63,12 @@ MQTTStatus_t mqtt_agent_publish(MQTTAgentLibrary_t *agent,
                                 const void *payload,
                                 size_t payload_length,
                                 MQTTQoS_t qos);
+MQTTStatus_t mqtt_agent_publish_with_options(MQTTAgentLibrary_t *agent,
+                                             const char *topic,
+                                             const void *payload,
+                                             size_t payload_length,
+                                             MQTTQoS_t qos,
+                                             bool retain);
 
 /* Stops the command loop and sends MQTT DISCONNECT. Call from a task. */
 MQTTStatus_t mqtt_agent_disconnect(MQTTAgentLibrary_t *agent);

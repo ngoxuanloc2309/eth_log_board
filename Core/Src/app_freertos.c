@@ -35,6 +35,8 @@
 #include "button_app.h"
 #include "indicator_app.h"
 #include "indicator_service_if.h"
+#include "splc_mqtt_port.h"
+#include "splc_port.h"
 #include "sx_uart.h"
 #include "stm32h5xx_hal_uart.h"
 #include <stdio.h>
@@ -321,6 +323,10 @@ __weak void StartMainTask(void *argument)
   } else {
     indicator_report_error(INDICATOR_ERROR_RADIO, false);
   }
+  if (splc_port_start() != 0) {
+  LOGE(TAG, "Failed to start SimplePLC engine");
+  indicator_report_error(INDICATOR_ERROR_INTERNAL, true);
+  }
   if (!web_server_init()) {
     LOGE(TAG, "Failed to queue web server startup");
     indicator_report_error(INDICATOR_ERROR_NETWORK, true);
@@ -516,8 +522,8 @@ static bool settings_install_uarts(const settings_config_t *config)
   for (index = 0U; index < SETTINGS_UART_COUNT; index++) {
     const settings_uart_config_t *const saved = &config->uart[index];
     sx_uart_config_t uart = {
-        .mode = SX_UART_MODE_POLLING,
-        .rx_buffer_size = 0U,
+        .mode = SX_UART_MODE_INTERRUPT,
+        .rx_buffer_size = SX_UART_RX_BUFFER_MAX,
         .Baudrate = saved->baud_rate,
         .WordLength = saved->data_bits == 7U
                           ? SX_UART_DATA_7_BITS
@@ -581,114 +587,256 @@ static void settings_network_recovery_process(void)
   }
 }
 
+static void mqtt_report_status(uint32_t generation, bool connected,
+                               bool tls_active, bool authenticated,
+                               uint16_t last_error)
+{
+  splc_mqtt_status_t status = {0};
+  status.generation = generation;
+  status.last_error = last_error;
+  if (connected) {
+    status.flags |= SPLC_MQTT_STATUS_CONNECTED;
+  }
+  if (tls_active) {
+    status.flags |= SPLC_MQTT_STATUS_TLS_ACTIVE;
+  }
+  if (authenticated) {
+    status.flags |= SPLC_MQTT_STATUS_AUTH_OK;
+  }
+  splc_mqtt_port_report_status(&status);
+}
+
+static uint16_t mqtt_error_code(MQTTStatus_t status)
+{
+  if (status == MQTTServerRefused) {
+    return SPLC_MQTT_ERR_AUTH_FAIL;
+  }
+  if (status == MQTTRecvFailed) {
+    return SPLC_MQTT_ERR_TIMEOUT;
+  }
+  return SPLC_MQTT_ERR_TCP_RESET;
+}
+
+static void mqtt_agent_close(void)
+{
+  if (mqtt_agent == NULL) {
+    return;
+  }
+  const MQTTStatus_t status = mqtt_agent_disconnect(mqtt_agent);
+  if (status != MQTTSuccess) {
+    LOGW(TAG, "MQTT disconnect cleanup returned: %s",
+         MQTT_Status_strerror(status));
+  }
+  mqtt_agent_destroy(mqtt_agent);
+  mqtt_agent = NULL;
+}
+
 static void mqtt_task(void *arg)
 {
-  settings_config_t settings;
+  settings_config_t settings = {0};
+  splc_mqtt_port_config_t plc_config = {0};
+  splc_mqtt_port_message_t pending_message;
+  bool settings_ready;
+  bool config_received = false;
+  bool pending = false;
+  bool connected = false;
+  bool retry_waiting = false;
+  bool reconnect = true;
+  bool app_configured = false;
+  bool current_tls = false;
+  uint16_t last_error = SPLC_MQTT_ERR_NONE;
+  uint32_t generation = 0U;
+  TickType_t retry_at = 0U;
   char port_text[6];
-  MQTTStatus_t status;
 
   (void)arg;
-  if (!settings_get_config(&settings)) {
-    LOGE(TAG, "MQTT settings are unavailable");
-    indicator_report_error(INDICATOR_ERROR_CONFIGURATION, true);
-    vTaskDelete(NULL);
-    return;
+  settings_ready = settings_get_config(&settings);
+  if (!settings_ready) {
+    LOGE(TAG, "MQTT settings are unavailable; waiting for SPLC broker config");
   }
   (void)snprintf(port_text, sizeof(port_text), "%u",
                  (unsigned int)settings.mqtt.port);
-  const MQTTAgentLibraryConfig_t mqtt_config = {
-      .host = settings.mqtt.host,
-      .port = port_text,
-      .ca = mqtt_ca_pem,
-      .ca_len = (uint32_t)(strlen(mqtt_ca_pem) + 1U),
-      .client_id = settings.mqtt.client_id,
-      .username = NULL,
-      .password = NULL,
-      .keepAlive = settings.mqtt.keep_alive_seconds,
-      .will_message = "offline",
-      .will_topic = "device/status",
-      .will_qos = MQTTQoS0,
-      .will_retain = false,
-      .security_mode = settings.mqtt.tls_enabled
-                           ? NETWORK_SECURITY_TLS
-                           : NETWORK_SECURITY_PLAIN,
-      .connect_timeout_ms = 10000U,
-      .command_timeout_ms = 15000U,
-      .incoming_publish_callback = NULL,
-      .incoming_publish_context = NULL};
 
-  if (!settings.mqtt.enabled) {
-    LOGI(TAG, "MQTT is disabled by device settings");
-    indicator_report_error(INDICATOR_ERROR_MQTT, false);
-    vTaskDelete(NULL);
-    return;
-  }
   while (!network_posix_is_ready()) {
     vTaskDelay(pdMS_TO_TICKS(250U));
   }
 
   for (;;) {
-    MQTTStatus_t disconnect_status;
-
-    LOGI(TAG, "Connecting MQTT agent to %s:%s",
-         settings.mqtt.host, port_text);
-    status = mqtt_agent_connect(&mqtt_agent, &mqtt_config);
-    if (status != MQTTSuccess) {
-      LOGE(TAG, "MQTT agent connection failed: %s",
-           MQTT_Status_strerror(status));
-      indicator_report_error(INDICATOR_ERROR_MQTT, true);
-      vTaskDelay(pdMS_TO_TICKS(5000U));
-      continue;
-    }
-
-    status = mqtt_agent_start(mqtt_agent);
-    if (status != MQTTSuccess) {
-      LOGE(TAG, "MQTT agent start failed: %s",
-           MQTT_Status_strerror(status));
-      indicator_report_error(INDICATOR_ERROR_MQTT, true);
-      mqtt_agent_destroy(mqtt_agent);
-      mqtt_agent = NULL;
-      vTaskDelay(pdMS_TO_TICKS(5000U));
-      continue;
-    }
-
-    LOGI(TAG, "MQTT agent started");
-    indicator_report_error(INDICATOR_ERROR_MQTT, false);
-    status = mqtt_agent_subscribe(mqtt_agent, "synaptix/v2/attribute",
-                                  MQTTQoS1);
-    if (status != MQTTSuccess) {
-      LOGE(TAG, "MQTT subscription failed: %s",
-           MQTT_Status_strerror(status));
-      indicator_report_error(INDICATOR_ERROR_MQTT, true);
-    }
-
-    while (status == MQTTSuccess && mqtt_agent_is_running(mqtt_agent)) {
-      status = mqtt_agent_publish(mqtt_agent,
-                                  "synaptix/v2/telemetry",
-                                  "hello broker",
-                                  strlen("hello broker"),
-                                  MQTTQoS0);
-      if (status != MQTTSuccess) {
-        break;
+    splc_mqtt_port_config_t updated;
+    while (splc_mqtt_port_take_config(&updated, 0U)) {
+      if (!config_received || updated.generation != generation ||
+          updated.app_configured != app_configured) {
+        splc_mqtt_port_discard_publishes();
+        pending = false;
+        plc_config = updated;
+        generation = updated.generation;
+        app_configured = updated.app_configured;
+        config_received = true;
+        reconnect = true;
+        retry_waiting = false;
       }
-      vTaskDelay(pdMS_TO_TICKS(100U));
     }
 
-    if (!mqtt_agent_is_running(mqtt_agent)) {
-      LOGW(TAG, "MQTT agent command loop stopped; reconnecting");
-      indicator_report_error(INDICATOR_ERROR_MQTT, true);
-    } else if (status != MQTTSuccess) {
-      LOGW(TAG, "MQTT operation failed; restarting connection");
+    if (mqtt_agent != NULL && !mqtt_agent_is_running(mqtt_agent)) {
+      LOGW(TAG, "MQTT command loop stopped; reconnecting");
+      mqtt_agent_close();
+      connected = false;
+      reconnect = true;
+      retry_waiting = true;
+      retry_at = xTaskGetTickCount() + pdMS_TO_TICKS(5000U);
+      last_error = SPLC_MQTT_ERR_TCP_RESET;
+      mqtt_report_status(generation, false, false, false, last_error);
       indicator_report_error(INDICATOR_ERROR_MQTT, true);
     }
-    disconnect_status = mqtt_agent_disconnect(mqtt_agent);
-    if (disconnect_status != MQTTSuccess) {
-      LOGW(TAG, "MQTT disconnect cleanup returned: %s",
-           MQTT_Status_strerror(disconnect_status));
+
+    if (reconnect && (!retry_waiting ||
+                      (int32_t)(xTaskGetTickCount() - retry_at) >= 0)) {
+      MQTTAgentLibraryConfig_t mqtt_config = {0};
+      const char *host = NULL;
+      const char *port = port_text;
+      const char *client_id = NULL;
+      const char *username = NULL;
+      const char *password = NULL;
+      uint32_t keepalive = 60U;
+      bool enabled = false;
+      bool persistent_session = false;
+      bool tls = false;
+      bool unsupported_config = false;
+
+      mqtt_agent_close();
+      connected = false;
+      mqtt_report_status(generation, false, false, false, SPLC_MQTT_ERR_NONE);
+
+      if (app_configured) {
+        host = plc_config.broker.host;
+        client_id = plc_config.broker.client_id;
+        username = plc_config.broker.username[0] != '\0'
+                       ? plc_config.broker.username : NULL;
+        password = plc_config.broker.password[0] != '\0'
+                       ? plc_config.broker.password : NULL;
+        tls = plc_config.broker.use_tls;
+        keepalive = plc_config.broker.keepalive_sec;
+        persistent_session = !plc_config.broker.clean_session;
+        enabled = true;
+        unsupported_config = plc_config.broker.version != 0U ||
+                             plc_config.broker.use_mtls ||
+                             plc_config.broker.ignore_hostname ||
+                             plc_config.broker.allow_self_signed;
+        (void)snprintf(port_text, sizeof(port_text), "%u",
+                       (unsigned int)plc_config.broker.port);
+      } else if (settings_ready) {
+        host = settings.mqtt.host;
+        client_id = settings.mqtt.client_id;
+        tls = settings.mqtt.tls_enabled;
+        keepalive = settings.mqtt.keep_alive_seconds;
+        enabled = settings.mqtt.enabled;
+        (void)snprintf(port_text, sizeof(port_text), "%u",
+                       (unsigned int)settings.mqtt.port);
+      }
+
+      if (unsupported_config) {
+        LOGE(TAG, "SPLC MQTT config requests unsupported TLS policy or MQTT version");
+        last_error = SPLC_MQTT_ERR_AUTH_FAIL;
+        mqtt_report_status(generation, false, false, false, last_error);
+        indicator_report_error(INDICATOR_ERROR_MQTT, true);
+        retry_waiting = true;
+        retry_at = xTaskGetTickCount() + pdMS_TO_TICKS(5000U);
+        reconnect = false;
+      } else if (!enabled) {
+        LOGI(TAG, "MQTT is disabled by device settings");
+        last_error = SPLC_MQTT_ERR_NONE;
+        mqtt_report_status(generation, false, false, false, last_error);
+        indicator_report_error(INDICATOR_ERROR_MQTT, false);
+        reconnect = false;
+        retry_waiting = false;
+      } else if (host == NULL || host[0] == '\0' ||
+                 client_id == NULL || client_id[0] == '\0') {
+        LOGE(TAG, "MQTT broker host and client ID must be configured");
+        last_error = SPLC_MQTT_ERR_AUTH_FAIL;
+        mqtt_report_status(generation, false, tls, false, last_error);
+        indicator_report_error(INDICATOR_ERROR_MQTT, true);
+        retry_waiting = true;
+        retry_at = xTaskGetTickCount() + pdMS_TO_TICKS(5000U);
+        reconnect = false;
+      } else if (!network_posix_is_ready()) {
+        retry_waiting = true;
+        retry_at = xTaskGetTickCount() + pdMS_TO_TICKS(1000U);
+      } else {
+        mqtt_config.host = host;
+        mqtt_config.port = port;
+        mqtt_config.ca = tls ? mqtt_ca_pem : NULL;
+        mqtt_config.ca_len = tls ? (uint32_t)(strlen(mqtt_ca_pem) + 1U) : 0U;
+        mqtt_config.client_id = client_id;
+        mqtt_config.username = username;
+        mqtt_config.password = password;
+        mqtt_config.keepAlive = keepalive;
+        mqtt_config.persistent_session = persistent_session;
+        mqtt_config.will_message = "offline";
+        mqtt_config.will_topic = "device/status";
+        mqtt_config.will_qos = MQTTQoS0;
+        mqtt_config.will_retain = false;
+        mqtt_config.security_mode = tls ? NETWORK_SECURITY_TLS
+                                        : NETWORK_SECURITY_PLAIN;
+        mqtt_config.connect_timeout_ms = 10000U;
+        mqtt_config.command_timeout_ms = 15000U;
+        mqtt_config.incoming_publish_callback = NULL;
+        mqtt_config.incoming_publish_context = NULL;
+
+        LOGI(TAG, "Connecting MQTT agent to %s:%s", host, port);
+        MQTTStatus_t status = mqtt_agent_connect(&mqtt_agent, &mqtt_config);
+        if (status == MQTTSuccess) {
+          status = mqtt_agent_start(mqtt_agent);
+        }
+        if (status != MQTTSuccess) {
+          LOGE(TAG, "MQTT agent connection failed: %s",
+               MQTT_Status_strerror(status));
+          mqtt_agent_close();
+          last_error = mqtt_error_code(status);
+          mqtt_report_status(generation, false, tls, false, last_error);
+          indicator_report_error(INDICATOR_ERROR_MQTT, true);
+          retry_waiting = true;
+          retry_at = xTaskGetTickCount() + pdMS_TO_TICKS(5000U);
+          reconnect = false;
+        } else {
+          connected = true;
+          current_tls = tls;
+          last_error = SPLC_MQTT_ERR_NONE;
+          retry_waiting = false;
+          reconnect = false;
+          mqtt_report_status(generation, true, tls, username != NULL,
+                             last_error);
+          indicator_report_error(INDICATOR_ERROR_MQTT, false);
+          LOGI(TAG, "MQTT agent connected");
+        }
+      }
     }
-    mqtt_agent_destroy(mqtt_agent);
-    mqtt_agent = NULL;
-    vTaskDelay(pdMS_TO_TICKS(5000U));
+
+    if (connected) {
+      if (!pending) {
+        pending = splc_mqtt_port_take_publish(&pending_message, 0U);
+      }
+      if (pending) {
+        const MQTTStatus_t status = mqtt_agent_publish_with_options(
+            mqtt_agent, pending_message.topic, pending_message.payload,
+            pending_message.payload_len, (MQTTQoS_t)pending_message.qos,
+            pending_message.retain);
+        if (status == MQTTSuccess) {
+          pending = false;
+        } else {
+          LOGW(TAG, "SPLC MQTT publish failed: %s",
+               MQTT_Status_strerror(status));
+          last_error = mqtt_error_code(status);
+          mqtt_report_status(generation, false, current_tls, false,
+                             last_error);
+          connected = false;
+          reconnect = true;
+          retry_waiting = true;
+          retry_at = xTaskGetTickCount() + pdMS_TO_TICKS(1000U);
+          mqtt_agent_close();
+        }
+      }
+    }
+    vTaskDelay(pdMS_TO_TICKS(25U));
   }
 }
 int shell_send_char(void *arg,char c){

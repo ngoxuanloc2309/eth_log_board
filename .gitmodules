@@ -19,3 +19,6 @@
 [submodule "libs/fs"]
 	path = libs/fs
 	url = https://github.com/littlefs-project/littlefs.git
+[submodule "libs/simple_plc"]
+	path = libs/simple_plc
+	url = https://github.com/SynaptiXCompany/X.LinkCoreEngine.git
