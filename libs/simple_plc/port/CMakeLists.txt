@@ -90,10 +90,7 @@ target_link_libraries(splc_port PUBLIC
 )
 
 if(SPLC_MODBUS_LIB_IS_MB)
-    target_include_directories(splc_port PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/mb_port
-        ${CMAKE_CURRENT_SOURCE_DIR}/mb_port/include
-    )
+    target_include_directories(splc_port PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/mb_port)
     target_link_libraries(splc_port PUBLIC splc_mbslave splc_mbmaster)
 endif()
 

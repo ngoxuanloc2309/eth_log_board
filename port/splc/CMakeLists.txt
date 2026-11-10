@@ -7,6 +7,7 @@ add_library(splc_dtu_port OBJECT
     splc_port.c
     splc_rtc_port.c
     splc_tcp_port.c
+    splc_adc_port.c
 )
 
 target_include_directories(splc_dtu_port PUBLIC
@@ -24,8 +25,5 @@ target_link_libraries(splc_dtu_port PUBLIC
     lwipallapps
 )
 
-target_sources(splc_dtu_port PRIVATE
-    $<TARGET_OBJECTS:splc_platform_freertos>
-)
 
 target_compile_features(splc_dtu_port PUBLIC c_std_11)

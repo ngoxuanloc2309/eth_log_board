@@ -796,7 +796,7 @@ static void mqtt_task(void *arg)
           indicator_report_error(INDICATOR_ERROR_MQTT, true);
           retry_waiting = true;
           retry_at = xTaskGetTickCount() + pdMS_TO_TICKS(5000U);
-          reconnect = false;
+          reconnect = true;   /* keep trying: the retry_at gate above spaces the attempts */
         } else {
           connected = true;
           current_tls = tls;

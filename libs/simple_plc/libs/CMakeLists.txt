@@ -45,42 +45,6 @@ target_include_directories(splc_nanomodbus PUBLIC
 
 target_compile_features(splc_nanomodbus PUBLIC c_std_11)
 
-# --- Modbus Master/Slave (SPLC_MODBUS_LIB_MB) ----------------------------
-#
-# The upstream tree contains protocol sources but does not ship its mbport.h;
-# the product's single-context adapter supplies that platform contract.
-if(SPLC_MODBUS_LIB_IS_MB)
-    set(SPLC_MB_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/mb_master_slave")
-    set(SPLC_MB_PORT_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../port/mb_port/include")
-
-    file(GLOB SPLC_MB_MASTER_SRC CONFIGURE_DEPENDS
-        "${SPLC_MB_ROOT}/mbmaster/mbm.c"
-        "${SPLC_MB_ROOT}/mbmaster/functions/*.c"
-        "${SPLC_MB_ROOT}/mbmaster/rtu/*.c"
-        "${SPLC_MB_ROOT}/mbmaster/common/mbutils.c"
-    )
-    file(GLOB SPLC_MB_SLAVE_SRC CONFIGURE_DEPENDS
-        "${SPLC_MB_ROOT}/mbslave/mbs.c"
-        "${SPLC_MB_ROOT}/mbslave/functions/*.c"
-        "${SPLC_MB_ROOT}/mbslave/rtu/*.c"
-    )
-
-    add_library(splc_mbmaster STATIC ${SPLC_MB_MASTER_SRC})
-    target_include_directories(splc_mbmaster PUBLIC
-        "${SPLC_MB_ROOT}/mbmaster/include"
-        "${SPLC_MB_PORT_INCLUDE}"
-    )
-    target_compile_features(splc_mbmaster PUBLIC c_std_11)
-
-    add_library(splc_mbslave STATIC ${SPLC_MB_SLAVE_SRC})
-    target_include_directories(splc_mbslave PUBLIC
-        "${SPLC_MB_ROOT}/mbslave/include"
-        "${SPLC_MB_PORT_INCLUDE}"
-    )
-    target_compile_features(splc_mbslave PUBLIC c_std_11)
-    target_link_libraries(splc_mbslave PUBLIC splc_mbmaster)
-endif()
-
 # Fail the build if the renaming is incomplete (new nanoMODBUS version, typo):
 # otherwise it would only surface later as a duplicate symbol at the host's
 # link. Skipped, with a warning, when no `nm` is known to CMake.

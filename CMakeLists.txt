@@ -145,7 +145,7 @@ target_link_libraries(mbedtls PUBLIC
 
 add_subdirectory(interface)
 
-add_subdirectory(drivers)
+add_subdirectory(Drivers)
 
 add_subdirectory(board)
 
@@ -206,6 +206,11 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     splc_dtu_port
     # Add user defined libraries
 )
+
+# SimplePLC runs on FreeRTOS (SX_OS_USE_FREERTOS 1): in library mode the host must add the
+# sx_os_*() glue objects to its own executable (an OBJECT library inside another OBJECT library
+# is NOT carried to the link).
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE $<TARGET_OBJECTS:splc_platform_freertos>)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_OBJCOPY} -O ihex
